@@ -1,0 +1,479 @@
+/* =========================================================================
+   UMDC — Un Monde De Chalance®
+   Reprise du design Figma « MacBook Air - 1 » (1280 × 832).
+
+   Toute la page est construite sur une seule unité : la hauteur de ligne de
+   la tracklist (36,63 px à la taille de référence). La navigation occupe
+   exactement deux lignes, ce qui la cale sur les pistes 1, 3, 5 et 7 comme
+   dans la maquette.
+   ========================================================================= */
+
+:root {
+  --paper: #ffffff;
+  --ink: #000000;
+  --ghost: #e6e6e6;       /* gris du lettrage UMDC */
+  --muted: #8a8a8a;
+
+  /* Grille Figma : 593 | 24 | 432 | 231 sur 1280 */
+  --col-menu: 46.328%;
+  --col-gap: 1.875%;
+  --col-panel: 33.75%;
+  --col-tail: 18.047%;
+
+  /* Hauteur du lettrage : 430 / 1280 de la largeur de scène. */
+  --mast: min(33.594cqw, 430px);
+
+  --line: 1.0712em;       /* pas de 36,63 px pour un corps de 34,20 px */
+  --small: 0.583em;       /* hauteur de capitale 14,72 contre 25,24 */
+  --raise: -0.528em;      /* numéros et « ft. » calés en haut de ligne */
+}
+
+/* Condor — la police de la maquette.
+   Le fichier fourni est la version d'essai « Condor Medium » : elle ne contient
+   que A-Z et a-z. Chiffres, lettres accentuées et « > » retombent sur Archivo,
+   réglé au plus proche. Dépose le kit web complet dans assets/fonts/ et ajoute
+   sa déclaration ci-dessous pour que tout passe en Condor. */
+@font-face {
+  font-family: 'Condor';
+  src: url('../assets/fonts/condor-medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+* { box-sizing: border-box; }
+
+html { background: var(--paper); }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Condor', 'Archivo', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  /* Archivo n'intervient que sur les caractères absents de Condor : réglé à la
+     chasse et à la graisse de Condor Medium pour limiter la cassure. */
+  font-variation-settings: 'wdth' 84, 'wght' 500;
+  font-weight: 500;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  padding: 0.5rem 1rem;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 14px;
+  z-index: 10;
+}
+.skip:focus { left: 0; }
+
+/* --------------------------------------------------------------- scène */
+
+.stage {
+  container-type: inline-size;
+  max-width: 1280px;
+  margin: 0 auto;
+  min-height: 100vh;
+}
+
+/* ------------------------------------------------------------ lettrage */
+
+/* Le lettrage reste collé en haut, le contenu défile dessous — comme le
+   « sticky » du calque Group 1 dans Figma. Fond opaque, donc. */
+.masthead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--paper);
+}
+
+.masthead__logo {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1280 / 430;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* -------------------------------------------------------------- grille */
+
+.board {
+  display: grid;
+  grid-template-columns: var(--col-menu) var(--col-gap) var(--col-panel) var(--col-tail);
+  align-items: start;
+  /* Capitale de Condor : 738/1000. Pour la retrouver à 25,24 px comme dans la
+     maquette, il faut un corps de 34,20 px sur une scène de 1280 px. */
+  font-size: clamp(14px, 2.6716cqw, 34.2px);
+  /* Première ligne de la tracklist à 443 px du haut, le lettrage en faisant 430. */
+  padding-top: 0.318em;
+  padding-bottom: 6em;
+}
+
+.menu { grid-column: 1; }
+.panel-col { grid-column: 3; min-width: 0; }
+
+/* ---------------------------------------------------------- navigation */
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  /* Seule la tracklist disparaît derrière le lettrage : le menu, lui, reste
+     accroché juste dessous, sinon il devient incliquable dès qu'on défile. */
+  position: sticky;
+  top: var(--mast);
+  align-self: start;
+  z-index: 1;
+  background: var(--paper);
+}
+
+/* Fenêtre trop courte pour empiler lettrage + menu : tout défile. */
+@media (max-height: 700px) {
+  .masthead,
+  .menu { position: static; }
+}
+
+.menu__item {
+  display: block;
+  /* Une entrée occupe deux lignes de tracklist : elle se cale donc sur les
+     pistes 1, 3, 5 et 7 comme dans la maquette. Marge plutôt que hauteur,
+     sinon le bouton centre son texte verticalement. */
+  margin-bottom: var(--line);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  line-height: var(--line);
+  text-align: right;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.menu__item:hover,
+.menu__item:focus-visible { color: var(--muted); outline: none; }
+
+.menu__item[aria-expanded='true'] {
+  text-decoration: underline;
+  text-decoration-thickness: 0.07em;
+  text-underline-offset: 0.08em;
+}
+
+/* L'onglet Écouter n'existe pas avant la sortie. */
+.menu__item[hidden] { display: none; }
+
+/* ------------------------------------------------------------- panneaux */
+
+.view[hidden] { display: none; }
+
+/* Sur grand écran, l'entrée de menu en vis-à-vis est déjà soulignée : répéter
+   le titre ferait doublon. On le garde pour les lecteurs d'écran. */
+.view__title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.view__body {
+  margin: 0 0 var(--line);
+  max-width: 24em;
+  font-size: var(--small);
+  font-variation-settings: 'wdth' 92, 'wght' 500;
+  line-height: 1.35;
+  letter-spacing: 0;
+}
+
+/* --------------------------------------------------------- tracklist */
+
+.tracks {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: track;
+}
+
+.track {
+  display: block;
+  line-height: var(--line);
+  white-space: nowrap;
+}
+
+/* Le numéro et le « ft. » sont calés en haut de la ligne, pas sur la ligne de
+   base. Décalage en `position: relative` et non en `vertical-align` : ce
+   dernier agrandirait la boîte de ligne et casserait le pas de 36,63 px. */
+.track__n,
+.track__feat {
+  position: relative;
+  top: var(--raise);
+  font-size: var(--small);
+  /* Sans cela, l'interligne hérité (en pixels) gonflerait la boîte de ligne. */
+  line-height: 1;
+}
+
+.track__n { margin-right: 0.04em; }
+.track__feat { margin-left: 0.22em; }
+
+/* Pistes jouables : toute la ligne devient un bouton. */
+.tracks--playable .track { display: flex; align-items: baseline; }
+
+.track__play {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  line-height: var(--line);
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.track__play:hover,
+.track__play:focus-visible { color: var(--muted); outline: none; }
+
+.track__play[disabled] { cursor: default; color: var(--muted); }
+
+.track.is-playing .track__play { text-decoration: underline; text-underline-offset: 0.08em; }
+
+.track.is-playing .track__play::after {
+  content: '◂';
+  margin-left: 0.25em;
+  font-size: var(--small);
+}
+
+/* ------------------------------------------------------------- listes */
+
+.links {
+  margin: 0 0 var(--line);
+  padding: 0;
+  list-style: none;
+}
+
+.links a {
+  display: block;
+  color: var(--ink);
+  line-height: var(--line);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.links a:hover,
+.links a:focus-visible {
+  color: var(--muted);
+  outline: none;
+  text-decoration: underline;
+  text-underline-offset: 0.08em;
+}
+
+.links .handle {
+  position: relative;
+  top: var(--raise);
+  margin-left: 0.25em;
+  font-size: var(--small);
+  line-height: 1;
+  font-variation-settings: 'wdth' 92, 'wght' 600;
+  color: var(--muted);
+}
+
+/* ---------------------------------------------------------- formulaire */
+
+.signup { margin: 0 0 var(--line); max-width: 24em; }
+
+.signup__label {
+  display: block;
+  font-size: var(--small);
+  line-height: 1.4;
+}
+
+.signup__input {
+  display: block;
+  width: 100%;
+  margin: 0.2em 0 0.4em;
+  padding: 0.35em 0.4em;
+  border: 0;
+  border-bottom: 0.09em solid var(--ink);
+  border-radius: 0;
+  background: none;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: var(--small);
+  font-variation-settings: 'wdth' 92, 'wght' 600;
+}
+
+.signup__input::placeholder { color: var(--ghost); }
+.signup__input:focus { outline: none; border-bottom-color: var(--muted); }
+
+.signup__submit {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: 1em;
+  line-height: var(--line);
+  cursor: pointer;
+}
+
+.signup__submit::before { content: '>'; }
+.signup__submit:hover,
+.signup__submit:focus-visible { color: var(--muted); outline: none; }
+.signup__submit[disabled] { color: var(--ghost); cursor: default; }
+
+.signup__msg {
+  margin: 0.3em 0 0;
+  min-height: 1.4em;
+  font-size: var(--small);
+  font-variation-settings: 'wdth' 92, 'wght' 600;
+  line-height: 1.4;
+}
+
+.signup__msg.is-error { color: var(--muted); }
+
+/* -------------------------------------------------------------- retour */
+
+.back {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: var(--small);
+  line-height: var(--line);
+  cursor: pointer;
+}
+
+.back:hover,
+.back:focus-visible { color: var(--ink); outline: none; }
+
+/* ------------------------------------------------------------- lecteur */
+
+.dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem clamp(0.75rem, 4vw, 2rem);
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 13px;
+  font-variation-settings: 'wdth' 92, 'wght' 700;
+}
+
+.dock[hidden] { display: none; }
+
+.dock__toggle,
+.dock__close {
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  background: none;
+  color: var(--paper);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.dock__toggle:focus-visible,
+.dock__close:focus-visible { outline: 1px solid var(--paper); }
+
+.dock__meta {
+  flex: none;
+  display: flex;
+  gap: 0.6rem;
+  align-items: baseline;
+  min-width: 0;
+}
+
+/* Liens par titre : ils vivent dans le lecteur plutôt que sur la ligne de la
+   tracklist, qui n'a pas la place. */
+.dock__links { display: flex; gap: 0.6rem; }
+
+.dock__links a {
+  color: var(--ghost);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.dock__links a:hover,
+.dock__links a:focus-visible { color: var(--paper); text-decoration: underline; outline: none; }
+
+.dock__title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 40vw;
+}
+
+.dock__time { color: var(--ghost); font-variant-numeric: tabular-nums; }
+
+.dock__seek {
+  flex: 1 1 auto;
+  min-width: 4rem;
+  accent-color: var(--paper);
+}
+
+/* ------------------------------------------------------------- mobile */
+
+@container (max-width: 760px) {
+  .board {
+    grid-template-columns: 1fr;
+    gap: calc(var(--line) * 1.2);
+    padding: calc(var(--line) * 0.6) 5cqw 6em;
+    font-size: clamp(17px, 5.1cqw, 28px);
+  }
+
+  .menu,
+  .panel-col { grid-column: 1; }
+
+  /* Menu en bandeau au-dessus du contenu, toujours accroché sous le lettrage. */
+  .menu {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: flex-start;
+    gap: 0.15em 0.6em;
+    padding-bottom: 0.2em;
+    width: 100%;
+  }
+
+  .menu__item { margin-bottom: 0; text-align: left; }
+
+  .track,
+  .links a,
+  .track__play { white-space: normal; }
+
+  /* Menu en ligne au-dessus du panneau : le titre redevient nécessaire. */
+  .view__title {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0 0 var(--line);
+    overflow: visible;
+    clip-path: none;
+    line-height: var(--line);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .menu__item,
+  .track__play,
+  .links a { transition: color 0.12s ease; }
+}
+
+/* Le site est volontairement en noir sur blanc : pas d'inversion auto. */

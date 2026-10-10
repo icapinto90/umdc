@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UMDC — Un Monde De Chalance®</title>
+<meta name="description" content="UMDC — Un Monde De Chalance®. Réseaux, newsletter et écoute de l'album.">
+<meta property="og:title" content="UMDC — Un Monde De Chalance®">
+<meta property="og:type" content="music.album">
+<meta property="og:image" content="assets/logo-umdc.svg">
+<link rel="icon" href="assets/logo-umdc.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..900&display=swap">
+<link rel="stylesheet" href="css/site.css">
+</head>
+<body>
+
+<a class="skip" href="#board">Aller au contenu</a>
+
+<div class="stage">
+
+  <header class="masthead">
+    <img class="masthead__logo" src="assets/logo-umdc.svg" width="1280" height="430"
+         alt="UMDC — Un Monde De Chalance®">
+  </header>
+
+  <main class="board" id="board">
+
+    <!-- Colonne de gauche : navigation, alignée sur les lignes de la tracklist -->
+    <nav class="menu" id="menu" aria-label="Navigation principale"></nav>
+
+    <!-- Colonne de droite : tracklist par défaut, remplacée par le panneau ouvert -->
+    <div class="panel-col">
+
+      <section class="view view--tracks is-active" id="view-tracks" aria-label="Tracklist">
+        <ol class="tracks" id="tracks"></ol>
+      </section>
+
+      <section class="view" id="view-reseaux" aria-label="Réseaux" hidden>
+        <p class="view__title" id="reseaux-title">RÉSEAUX</p>
+        <ul class="links" id="socials"></ul>
+        <button class="back" type="button" data-close>&lt;RETOUR</button>
+      </section>
+
+      <section class="view" id="view-rejoindre" aria-label="Newsletter" hidden>
+        <p class="view__title" id="rejoindre-title">REJOINDRE</p>
+        <p class="view__body" id="newsletter-body"></p>
+        <form class="signup" id="signup" novalidate>
+          <label class="signup__label" for="signup-email">TON EMAIL</label>
+          <input class="signup__input" id="signup-email" name="email" type="email"
+                 inputmode="email" autocomplete="email" placeholder="nom@exemple.fr" required>
+          <button class="signup__submit" type="submit" id="signup-submit">REJOINDRE</button>
+          <p class="signup__msg" id="signup-msg" role="status" aria-live="polite"></p>
+        </form>
+        <button class="back" type="button" data-close>&lt;RETOUR</button>
+      </section>
+
+      <section class="view" id="view-email" aria-label="Contact" hidden>
+        <p class="view__title" id="email-title">EMAIL</p>
+        <p class="view__body" id="contact-body"></p>
+        <ul class="links" id="contact-links"></ul>
+        <button class="back" type="button" data-close>&lt;RETOUR</button>
+      </section>
+
+      <section class="view" id="view-ecouter" aria-label="Écouter" hidden>
+        <p class="view__title" id="ecouter-title">ÉCOUTER</p>
+        <p class="view__body" id="listen-body"></p>
+        <ul class="links" id="platforms"></ul>
+        <ol class="tracks tracks--playable" id="player-tracks"></ol>
+        <button class="back" type="button" data-close>&lt;RETOUR</button>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<!-- Lecteur, visible uniquement quand une piste tourne -->
+<div class="dock" id="dock" hidden>
+  <button class="dock__toggle" id="dock-toggle" type="button" aria-label="Lecture / pause">▶</button>
+  <div class="dock__meta">
+    <span class="dock__title" id="dock-title"></span>
+    <span class="dock__time" id="dock-time">0:00</span>
+    <span class="dock__links" id="dock-links"></span>
+  </div>
+  <input class="dock__seek" id="dock-seek" type="range" min="0" max="1000" value="0"
+         aria-label="Position dans la piste">
+  <button class="dock__close" id="dock-close" type="button" aria-label="Fermer le lecteur">✕</button>
+  <audio id="audio" preload="none"></audio>
+</div>
+
+<script src="js/site.js"></script>
+</body>
+</html>

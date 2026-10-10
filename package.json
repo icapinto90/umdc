@@ -1,0 +1,11 @@
+{
+  "name": "umdc-site",
+  "version": "1.0.0",
+  "description": "Site UMDC — Un Monde De Chalance®",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "export": "node server.js export"
+  },
+  "engines": { "node": ">=18" }
+}
