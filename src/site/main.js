@@ -496,13 +496,12 @@ function init() {
     const s = target.dataset.go;
     if (target.classList.contains('nav-item')) toggle(s); else go(s);
   });
-  // Le son est toujours allumé à l'arrivée (il démarre au premier geste si le navigateur le bloque).
+  // Le son est allumé à l'arrivée, mais la musique ne part qu'au clic sur « Entrer ».
   const showSound = (on) => {
     $('#sound').setAttribute('aria-pressed', on ? 'true' : 'false');
     $('#sound-label').textContent = on ? 'on' : 'off';
   };
   sound.on = true;
-  sound.start();
   showSound(true);
   $('#sound').addEventListener('click', () => showSound(sound.toggle()));
   $('#unearth').addEventListener('click', startUnearth);

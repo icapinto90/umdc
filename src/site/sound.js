@@ -1,6 +1,6 @@
 // Le son du site : un extrait d'« Échos des plaines » en boucle, allumé par défaut à volume modéré,
 // une note à chaque choix et le souffle du sable au déblayage (WebAudio).
-// Les navigateurs bloquent le son tant que le visiteur n'a pas touché la page : il démarre alors à son premier geste.
+// La musique ne démarre que sur un clic (« Entrer » ou le bouton Son) : les navigateurs bloquent le son avant un geste.
 
 const MUSIC = '/audio/ambient.m4a';
 // Volume de la musique (0 à 1). Le fichier est mixé fort : 0.2 reste en fond.
@@ -36,23 +36,8 @@ export class Ambient {
       }
       this.setLevel(this.level);
       if (this.ac && this.ac.state === 'suspended') this.ac.resume().catch(() => {});
-      this.music.play().then(() => {
-        if (this.ac && this.ac.state !== 'running') this.waitForGesture();
-      }).catch(() => this.waitForGesture());
+      this.music.play().catch(() => {});
     } catch (e) { /* pas d'audio : tant pis */ }
-  }
-
-  /* Son bloqué par le navigateur : on réessaie au premier geste du visiteur (clic, toucher, touche du clavier). */
-  waitForGesture() {
-    if (this.waiting) return;
-    this.waiting = true;
-    const evs = ['pointerdown', 'keydown', 'touchstart'];
-    const retry = () => {
-      evs.forEach((e) => window.removeEventListener(e, retry, true));
-      this.waiting = false;
-      if (this.on) this.start();
-    };
-    evs.forEach((e) => window.addEventListener(e, retry, true));
   }
 
   stop() {
