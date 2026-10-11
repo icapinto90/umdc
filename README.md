@@ -1,175 +1,108 @@
-# UMDC — Un Monde De Chalance®
+# UMDC — Un Monde De Chalance
 
-Site d'album en HTML / CSS / JavaScript, repris du design Figma, avec un
-back-office pour tout piloter (réseaux, newsletter, sons, date de sortie).
+Site de l'album de Noé Mémorable, d'après le design Claude Design « Site UMDC — écran 3D » :
+un îlot de sable sur une eau miroir, sous un ciel bleu à cumulus, le collier scanné et la cartouche de verre
+avec son DVD en 3D (Three.js), panneaux Réseaux / Rejoindre / Écouter, et un back-office
+pour tout piloter.
 
-Aucune dépendance à installer : le serveur est un seul fichier Node.
-
----
+- **Front** : Vite, Three.js r149 (la version du design, pour un rendu identique), JS sans framework.
+- **API** : Node ≥ 22.13 + Express, base SQLite intégrée à Node (`node:sqlite`, rien à compiler).
 
 ## Démarrer
 
 ```bash
-node server.js
+npm install
+npm run dev
 ```
 
-- Site : <http://localhost:3000>
-- Back-office : <http://localhost:3000/admin>
-
-Le mot de passe du back-office vaut `umdc` par défaut. **Change-le** avant de
-mettre le site en ligne :
-
-```bash
-UMDC_ADMIN_PASSWORD="ton-mot-de-passe" node server.js
-```
-
-Autres réglages : `PORT=8080 node server.js`.
-
----
-
-## Les trois options du menu
-
-| Entrée | Ce qu'elle ouvre |
-| --- | --- |
-| `>RÉSEAUX` | Instagram, X.com, et tout réseau ajouté plus tard |
-| `>REJOINDRE` | Le champ email qui inscrit à la newsletter |
-| `>EMAIL` | L'adresse de contact (booking, presse) |
-| `>ÉCOUTER` | **N'apparaît que le jour de la sortie** : plateformes + lecture des sons |
-
-Chaque entrée peut être renommée, masquée ou réordonnée depuis le back-office
-(onglet « Textes & menu »).
-
----
-
-## Le jour de la sortie
-
-Onglet **Sortie & écoute** du back-office, trois modes :
-
-- **Automatique** — l'onglet `>ÉCOUTER` s'ouvre tout seul à la date et l'heure
-  indiquées. Une page déjà ouverte se rafraîchit d'elle-même au moment J.
-- **Forcer l'ouverture** — pour un test ou une sortie anticipée.
-- **Forcer la fermeture** — pour refermer quoi qu'il arrive.
-
-Tant que la sortie n'est pas active, le serveur ne renvoie **ni les liens de
-plateformes, ni les URL des fichiers audio** — même à quelqu'un qui inspecterait
-les requêtes réseau. Rien ne fuite avant l'heure.
-
-### Mettre les sons
-
-Onglet **Sons** :
-
-1. Dépose les fichiers (mp3, m4a, wav, ogg — 25 Mo max chacun) dans la zone
-   prévue. Mets des extraits si tu ne veux pas diffuser les morceaux entiers.
-2. Déplie une piste (bouton `▾`), choisis son fichier dans la liste, et colle
-   au besoin le lien direct du titre sur chaque plateforme.
-3. Décoche « en ligne » pour garder une piste muette le jour J.
-
-Sur le site, une piste avec un son devient cliquable dans `>ÉCOUTER` et se joue
-dans un lecteur en bas d'écran, avec ses liens par plateforme.
-
-### Les plateformes
-
-Onglet **Sortie & écoute**, en bas : Spotify, Apple Music, Deezer, YouTube sont
-déjà là — il suffit de coller l'URL de l'album. Une plateforme sans URL
-n'apparaît pas. Tu peux en ajouter d'autres et les réordonner.
-
----
-
-## Les emails de la newsletter
-
-Ils arrivent dans `data/subscribers.json`. L'onglet **Emails** du back-office
-les liste, les exporte en CSV et permet de tout effacer.
-
----
-
-## Organisation des fichiers
-
-```
-server.js              serveur + API (zéro dépendance)
-data/site.json         tout le contenu du site
-data/subscribers.json  les inscrits à la newsletter
-public/
-  index.html           le site
-  admin.html           le back-office
-  css/ js/             styles et scripts
-  assets/              le lettrage UMDC exporté de Figma
-  audio/               les fichiers déposés depuis le back-office
-```
-
-### API
-
-| Route | Usage |
-| --- | --- |
-| `GET /api/site` | Contenu public (filtré selon l'état de la sortie) |
-| `POST /api/subscribe` | Inscription newsletter `{ "email": "…" }` |
-| `GET·PUT /api/admin/site` | Lecture / écriture de la configuration |
-| `GET·POST·DELETE /api/admin/audio` | Bibliothèque audio |
-| `GET·DELETE /api/admin/subscribers` | Inscrits |
-
-Les routes `/api/admin/*` exigent l'en-tête `x-umdc-key`.
-
----
+- Site : <http://localhost:5173>
+- Back-office : <http://localhost:5173/admin/> — mot de passe `umdc` en développement.
 
 ## Mettre en ligne
 
-**Avec Node** (recommandé — newsletter, back-office et bascule automatique à la
-date fonctionnent) : n'importe quel hébergeur Node (Railway, Render, Fly, un
-VPS). Sers le dossier derrière HTTPS et définis `UMDC_ADMIN_PASSWORD`.
-
-**En statique** (Netlify, GitHub Pages, un simple FTP) :
+Sur un hébergement Node (VPS, Render, Railway, Fly…) :
 
 ```bash
-node server.js export   # écrit public/site.json
+npm ci
+npm run build
+ADMIN_PASSWORD="un-vrai-mot-de-passe" npm start   # http://localhost:3000
 ```
 
-Puis déploie le dossier `public/`. Le site s'affiche et joue les sons, mais :
+Variables (voir `.env.example`) :
 
-- la newsletter bascule sur un `mailto:` vers l'adresse de contact ;
-- il n'y a pas de back-office en ligne ;
-- **il faut relancer l'export et redéployer le jour de la sortie** — l'état est
-  figé au moment de l'export.
+| Variable | Rôle |
+| --- | --- |
+| `ADMIN_PASSWORD` | **Obligatoire en production.** Mot de passe du back-office. |
+| `PORT` | Port d'écoute (3000 par défaut). |
+| `DATA_DIR` | Dossier de la base et des sons (`data/` par défaut). **Doit être persistant** (volume/disque) : c'est là que vivent les emails. |
+| `TRUST_PROXY` | `true` derrière un proxy (Nginx, Render…) pour que la limite d'essais se base sur la vraie IP. |
 
----
+Sers le site en HTTPS : le cookie de session admin est `Secure` en production.
 
-## Notes de conversion depuis Figma
+Sauvegarde : il suffit de copier le dossier `DATA_DIR` (`umdc.sqlite` + `audio/`).
 
-Le lettrage `UMDC / UN MONDE DE CHALANCE®` est l'export SVG d'origine
-(`public/assets/logo-umdc.svg`), utilisé tel quel.
+## Le back-office
 
-Le menu et la tracklist étaient vectorisés dans la maquette (du texte converti
-en contours). Ils sont redevenus du vrai texte, parce qu'ils doivent être
-modifiables depuis le back-office et accueillir l'onglet `>ÉCOUTER` le jour J.
-Les exports d'origine restent dans `public/assets/` sous le suffixe
-`-figma-reference` pour comparaison.
+| Onglet | Ce qu'on y fait |
+| --- | --- |
+| **Textes** | Tous les textes du site : nom de l'artiste (sous le logo), accueil, menu, panneaux, newsletter, confidentialité. |
+| **Réseaux** | Ajouter, renommer, réordonner, retirer les réseaux (nom, compte, URL). |
+| **Sortie & tracklist** | Ouverture d'« Écouter » (automatique à une date, forcée ouverte, forcée fermée), titre de l'album, plateformes, titres (feat., durée, son associé, en ligne ou non). |
+| **Sons** | Envoyer les fichiers audio (glisser-déposer, 60 Mo max), les écouter, les supprimer. |
+| **Emails** | Les inscrits, recherche, suppression, export CSV, copie des adresses. |
 
-### La police
+`Ctrl/Cmd + S` enregistre. Rien ne change sur le site avant « Enregistrer ».
 
-La maquette utilise **Condor** (Type Network). Le fichier `Condor Medium.otf`
-fourni est installé en `public/assets/fonts/condor-medium.woff2` et déclaré en
-tête de `public/css/site.css`. Toute la mise en page est calée sur sa hauteur de
-capitale (738/1000), donc remplacer la police suffit à tout réaligner.
+### Avant la sortie, rien ne fuit
 
-Deux limites de ce fichier précis :
+Tant que la sortie n'est pas active, l'API publique ne renvoie ni titres, ni
+plateformes, ni sons, et `/api/audio/…` répond 404. En mode automatique, une
+page déjà ouverte se met à jour seule à l'heure de sortie. L'admin connecté peut
+écouter les sons à tout moment.
 
-1. **C'est une version d'essai.** Elle contient A-Z et a-z, rien d'autre : pas
-   de chiffres, pas de lettres accentuées, pas de « > ». La numérotation des
-   pistes, les sept titres accentués (ÉCHOS, LA MARÉE, CANOPÉE, MÉMO, SPÉCIMEN,
-   LA DERNIÈRE FOIS, RÉSEAUX) et les chevrons du menu retombent sur Archivo,
-   réglé au plus près (`wdth 84 / wght 500`).
-2. **Ce n'est pas la bonne graisse.** Les fûts de la maquette mesurent 0,273 fois
-   la hauteur de capitale, ceux de Condor Medium 0,202 : le design est environ
-   35 % plus gras — c'est un Condor Bold ou Black, probablement dans une chasse
-   plus étroite. Les chasses de ligne, elles, correspondent à 1,2 % près, ce qui
-   confirme la famille.
+### Les emails
 
-Son champ de licence indique « All rights reserved. For TN use only » et ses
-bits d'embarquement (`fsType 4`) n'autorisent que l'aperçu et l'impression :
-il faut un kit web sous licence pour une mise en ligne.
+Chaque inscription garde l'adresse et la date du consentement (case obligatoire).
+Une adresse déjà inscrite ne crée pas de doublon. L'export CSV (UTF-8 avec BOM)
+s'ouvre dans Excel et s'importe dans Brevo ou Mailchimp. Aucun mail n'est envoyé
+automatiquement.
 
-Pour passer au fichier définitif : dépose le `.woff2` dans
-`public/assets/fonts/`, change le `src` du `@font-face` en tête de
-`public/css/site.css`, et ajuste `font-weight` dans la règle `body` juste en
-dessous. Rien d'autre à toucher.
+## Structure
 
-La grille (593 | 24 | 432 px sur 1280), le pas de 36,63 px entre les lignes et
-le calage du menu sur les pistes 1, 3, 5 et 7 sont repris au pixel.
+```
+index.html            page du site
+admin/index.html      page du back-office
+src/site/             scène 3D (scene.js), interface (main.js), son d'ambiance, styles
+src/admin/            back-office
+src/shared/           jetons et composants du design system UMDC
+server/               API Express, SQLite, contenu par défaut
+public/               polices, logos, collier (géométrie binaire + textures), ciel, son d'ambiance
+```
+
+Les assets viennent du canvas Claude Design. La géométrie du collier, livrée en
+base64 dans un script, est convertie en binaire (`public/models/collier.bin` :
+en-tête de 8 octets — nombre de sommets, nombre d'indices — puis positions
+`float32×3`, uv `float32×2`, indices `uint16`).
+
+Le ciel est « Kloofendal 48d Partly Cloudy (Pure Sky) » de Poly Haven (CC0), moitié haute,
+étalonnée plus bleue et plus contrastée (`public/textures/sky-blue-8k.jpg`, 8192 px ; `sky-blue.jpg`,
+4096 px, pour les téléphones et les cartes graphiques limitées). Le shader fait onduler doucement
+les nuages (une seule lecture de l'image, pour rester net), dessine un soleil
+posé sur l'horizon (celui de la photo est trop haut pour être dans le cadre) avec halo et une colonne de lumière
+qui monte dans le ciel et se prolonge dans l'eau (`sunPillar`), et des valeurs « HDR » pour les reflets du verre et du disque.
+L'eau est un miroir façon salar d'Uyuni : à peine ridée près de l'îlot, parfaitement plate vers l'horizon,
+où elle rejoint le ciel sans ligne ni brume (effet infini).
+Si l'image ne charge pas, la scène repasse aux nuages peints du design.
+
+La cartouche est un bloc de verre transparent, avec le DVD visible à l'intérieur : une face très épurée,
+juste le logo et le collier avec ses perles. La jaquette et l'obi essayés un temps ne sont plus utilisés ;
+leurs sources restent dans `design/jaquette/` (et les textures dans `public/textures/`) pour y revenir.
+
+Le son est allumé par défaut : `public/audio/ambient.m4a`, l'extrait d'« Échos des plaines »,
+joue à volume modéré (`LEVEL` dans `src/site/sound.js`). Les navigateurs
+n'autorisent le son qu'après un geste : à la fin du chargement, l'écran s'ouvre sur l'îlot vu du dessus avec un bouton « Entrer », dont le clic
+lance la musique et la descente du panorama. Le bouton « Son » le coupe.
+L'extrait, choisi dans le design, est public, même avant la sortie.
+
+Polices : Condor Medium (UMDC) et IBM Plex Mono (SIL OFL, licence dans
+`public/fonts/`).

@@ -1,0 +1,57 @@
+<!doctype html><html><body style="margin:0;background:transparent">
+<canvas id="c" width="2048" height="2048"></canvas>
+<script type="module">
+import * as THREE from '../../node_modules/three/build/three.module.js';
+const r = new THREE.WebGLRenderer({ canvas: c, antialias: true, alpha: true, preserveDrawingBuffer: true });
+r.outputEncoding = THREE.sRGBEncoding; r.setClearColor(0xffffff, 0);
+const scene = new THREE.Scene();
+scene.add(new THREE.HemisphereLight(0xffffff, 0xe8e2d8, 0.9));
+const sun = new THREE.DirectionalLight(0xffffff, 1.3); sun.position.set(-1, 3, -0.6); scene.add(sun);
+const buf = await (await fetch('../../public/models/collier.bin')).arrayBuffer();
+const h = new DataView(buf, 0, 8), n = h.getUint32(0, true), ni = h.getUint32(4, true);
+const g = new THREE.BufferGeometry();
+g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(buf, 8, n * 3), 3));
+const uv = new THREE.BufferAttribute(new Float32Array(buf, 8 + n * 12, n * 2), 2);
+g.setAttribute('uv', uv); g.setAttribute('uv2', uv);
+g.setIndex(new THREE.BufferAttribute(new Uint16Array(buf, 8 + n * 20, ni), 1));
+g.computeVertexNormals(); g.computeBoundingBox();
+/* relief local : la hauteur moins la hauteur moyenne du papier autour (grille de 0,02, rayon 3 cases) */
+{
+  const P = g.attributes.position.array, N = P.length / 3, cs = 0.02, R = +(new URLSearchParams(location.search).get('rad') || 3);
+  const key = (i, j) => i * 100000 + j, cells = new Map();
+  for (let v = 0; v < N; v++) { const i = Math.floor(P[v * 3] / cs), j = Math.floor(P[v * 3 + 2] / cs), k = key(i, j); let c = cells.get(k); if (!c) cells.set(k, c = [0, 0]); c[0] += P[v * 3 + 1]; c[1]++; }
+  const rel = new Float32Array(N);
+  for (let v = 0; v < N; v++) {
+    const i = Math.floor(P[v * 3] / cs), j = Math.floor(P[v * 3 + 2] / cs); let sy = 0, sn = 0;
+    for (let a = -R; a <= R; a++) for (let b = -R; b <= R; b++) { const c = cells.get(key(i + a, j + b)); if (c) { sy += c[0]; sn += c[1]; } }
+    rel[v] = P[v * 3 + 1] - sy / sn;
+  }
+  g.setAttribute('rel', new THREE.BufferAttribute(rel, 1));
+}
+const L = new THREE.TextureLoader(), lt = (u) => new Promise((res) => L.load(u, res));
+const [map, nm, ao] = await Promise.all([lt('../../public/textures/collier-base.jpg'), lt('../../public/textures/collier-normal.jpg'), lt('../../public/textures/collier-ao.jpg')]);
+[map, nm, ao].forEach((t) => { t.flipY = false; t.anisotropy = 8; }); map.encoding = THREE.sRGBEncoding;
+const mat = new THREE.MeshStandardMaterial({ map, normalMap: nm, aoMap: ao, aoMapIntensity: 0.6, roughness: 0.85, metalness: 0, transparent: true });
+mat.normalScale.set(1, -1);
+/* le papier du scan devient transparent : seul le collier reste */
+const q = new URLSearchParams(location.search);
+mat.onBeforeCompile = (sh) => {
+  sh.uniforms.uDk = { value: +(q.get('dk') || 0.12) }; sh.uniforms.uLo = { value: +(q.get('lo') || 0.003) }; sh.uniforms.uHi = { value: +(q.get('hi') || 0.006) };
+  sh.vertexShader = 'attribute float rel;\nvarying float vRel;\nvarying vec3 vLP;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vLP = position; vRel = rel;');
+  sh.fragmentShader = 'varying float vRel;\nvarying vec3 vLP;\nuniform float uLo;\nuniform float uDk;\nuniform float uHi;\n' + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+    float lumD = dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+    float satD = max(max(diffuseColor.r, diffuseColor.g), diffuseColor.b) - min(min(diffuseColor.r, diffuseColor.g), diffuseColor.b);
+    float paper = smoothstep(0.15, 0.07, satD) * smoothstep(0.16, 0.3, lumD);
+    float eR = length((vLP.xz - vec2(0.0, 0.1)) / vec2(0.46, 0.8));
+    float keepC = max(smoothstep(uDk + 0.06, uDk, lumD), smoothstep(0.17, 0.27, satD));
+    diffuseColor.a *= max(smoothstep(uLo, uHi, vRel) * smoothstep(0.5, 0.35, lumD), keepC) * smoothstep(1.0, 0.85, eR);`);
+};
+const m = new THREE.Mesh(g, mat); scene.add(m);
+const bb = g.boundingBox; const cx = (bb.min.x + bb.max.x) / 2, cz = (bb.min.z + bb.max.z) / 2;
+const half = Math.max(bb.max.x - bb.min.x, bb.max.z - bb.min.z) / 2 * 1.02;
+const cam = new THREE.OrthographicCamera(-half, half, half, -half, 0.01, 10);
+cam.position.set(cx, 3, cz); cam.up.set(0, 0, -1); cam.lookAt(cx, 0, cz);
+r.render(scene, cam);
+window.done = c.toDataURL('image/png');
+window.info = JSON.stringify({ bb, half });
+</script></body></html>

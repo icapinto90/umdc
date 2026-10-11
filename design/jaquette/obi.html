@@ -1,0 +1,43 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8">
+<style>
+@font-face{font-family:Plex;src:url(../../public/fonts/IBMPlexMono-Medium.woff2);font-weight:500}
+*{box-sizing:border-box}
+html,body{margin:0;width:1456px;height:2048px;overflow:hidden}
+/* une seule bande, de gauche à droite : dos (366 px) | arrondi + tranche + arrondi (724 px) | face avant (366 px) */
+.strip{position:relative;width:1456px;height:2048px;background:#fbfaf7;font-family:Plex,monospace;color:#1d2a6b}
+.top{position:absolute;left:0;top:0;width:100%;height:250px;background:#1b7aa2}
+.foot{position:absolute;left:0;bottom:0;width:100%;height:150px;background:#1d2a6b}
+.mark{position:absolute;top:70px;width:270px;filter:brightness(0) invert(1)}
+.v{position:absolute;writing-mode:vertical-rl;white-space:nowrap;line-height:1}
+.big{font-family:"Noto Serif CJK JP";font-weight:900;font-size:112px;letter-spacing:.03em;color:#1d2a6b}
+.sub{font-family:"Noto Sans CJK JP";font-weight:700;font-size:36px;letter-spacing:.06em;color:#1b7aa2}
+.rule{position:absolute;height:6px;background:#1d2a6b}
+.micro{font-weight:500;font-size:28px;letter-spacing:.14em;text-transform:uppercase}
+.spine{position:absolute;left:728px;top:250px;height:1648px;transform:translateX(-50%);writing-mode:vertical-rl;display:flex;align-items:center;justify-content:center;gap:40px}
+.fold{position:absolute;top:0;bottom:0;width:2px;background:rgba(29,42,107,.08)}
+</style></head><body><div class="strip">
+<div class="top"></div><div class="foot"></div>
+<!-- face avant (à droite de la bande) -->
+<img class="mark" style="left:1138px" src="../../public/assets/mark-umdc.png">
+<div class="v big" style="left:1217px;top:300px">ノエ・メモラブル</div>
+<div class="rule" style="left:1173px;top:1340px;width:200px"></div>
+<div class="v sub" style="left:1255px;top:1380px;font-size:32px">アン・モンド・ドゥ・シャランス</div>
+<div class="micro" style="position:absolute;left:1090px;width:366px;bottom:56px;text-align:center;color:#fff">NM-UMDC01</div>
+<!-- tranche -->
+<div class="fold" style="left:366px"></div><div class="fold" style="left:1090px"></div>
+<div class="spine"><span class="micro">UMDC</span><span class="micro" style="color:#1b7aa2">✦</span><span class="micro">Noé Mémorable</span><span class="micro" style="color:#1b7aa2">✦</span><span class="micro">NM-UMDC01</span></div>
+<!-- dos (à gauche de la bande) -->
+<img class="mark" style="left:48px" src="../../public/assets/mark-umdc.png">
+<div class="v sub" style="left:160px;top:330px;font-size:44px;color:#1d2a6b">ノエ・メモラブル</div>
+<div class="v sub" style="left:80px;top:330px;font-size:30px">アン・モンド・ドゥ・シャランス</div>
+<svg id="bars" style="position:absolute;left:50px;top:1560px" width="260" height="110"></svg>
+<div class="micro" style="position:absolute;left:0;width:366px;top:1690px;text-align:center;font-size:22px">NM-UMDC01</div>
+<div class="micro" style="position:absolute;left:0;width:366px;bottom:56px;text-align:center;color:#fff">UMDC</div>
+</div>
+<script>
+let seed = 11, x = 0, svg = '';
+const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+while (x < 256) { const w = 2 + Math.floor(rnd() * 3) * 2; if (rnd() > .42) svg += `<rect x="${x}" y="0" width="${w}" height="110" fill="#1d2a6b"/>`; x += w; }
+document.getElementById('bars').innerHTML = svg;
+document.fonts.ready.then(() => setTimeout(() => { window.ready = true; }, 600));
+</script></body></html>

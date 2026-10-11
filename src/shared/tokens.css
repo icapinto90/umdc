@@ -1,0 +1,21 @@
+/* Jetons du site : le design system UMDC, teinté sable et bleu des perles du collier comme dans le design. */
+@font-face { font-family: "Condor"; src: url("/fonts/Condor-Medium.otf") format("opentype"); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: "IBM Plex Mono"; src: url("/fonts/IBMPlexMono-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "IBM Plex Mono"; src: url("/fonts/IBMPlexMono-Medium.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; }
+
+:root {
+  --surface: #ebdecd; --surface-raised: #f4eee5; --surface-sunken: #e6dccd; --surface-inverse: #1b7aa2; --surface-inverse-raised: #156586;
+  --ink: #2a221b; --ink-muted: #6b5641; --ink-disabled: #9a8a76; --ink-inverse: #fffaf3; --ink-inverse-muted: #d4ebf4;
+  --line: #c7b79f; --line-strong: #2a221b; --line-inverse: #4a9cc0;
+  /* Le bleu des perles du collier : la couleur principale. --accent-text, un cran plus foncé, pour les petits textes sur fond crème. */
+  --accent: #1b7aa2; --accent-text: #15668a; --turquoise: #2b95c4; --bronze: #8a6a3e;
+  --font-display: Condor, "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-6: 24px; --space-8: 32px; --space-12: 48px; --space-16: 64px; --space-24: 96px;
+  --radius-none: 0px; --radius-full: 9999px; --chamfer-s: 6px; --chamfer-m: 12px; --chamfer-l: 24px;
+  --border-hair: 1px; --border-line: 2px; --border-band: 4px; --slant: -11.31deg;
+  --focus-ring: 0 0 0 2px #f4eee5, 0 0 0 4px #2a221b;
+  --focus-ring-inverse: 0 0 0 2px #1b7aa2, 0 0 0 4px #fffaf3;
+  --ease: cubic-bezier(.22, .8, .24, 1);
+  color-scheme: light;
+}

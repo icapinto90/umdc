@@ -1,11 +1,24 @@
 {
   "name": "umdc-site",
-  "version": "1.0.0",
-  "description": "Site UMDC — Un Monde De Chalance®",
+  "version": "2.0.0",
+  "description": "Site UMDC — Un Monde De Chalance",
   "private": true,
-  "scripts": {
-    "start": "node server.js",
-    "export": "node server.js export"
+  "type": "module",
+  "engines": {
+    "node": ">=22.13"
   },
-  "engines": { "node": ">=18" }
+  "scripts": {
+    "dev": "concurrently -k -n api,vite -c gray,cyan \"node --watch server/index.js\" \"vite\"",
+    "build": "vite build",
+    "start": "NODE_ENV=production node server/index.js"
+  },
+  "dependencies": {
+    "express": "^5.3.0",
+    "multer": "^2.4.0",
+    "three": "0.149.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.5",
+    "vite": "^6.4.4"
+  }
 }

@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>UMDC — Noé Mémorable</title>
+  <meta name="description" content="UMDC, l'album de Noé Mémorable, arrive prochainement. Rejoins la liste pour l'entendre avant tout le monde.">
+  <meta name="theme-color" content="#ebdecd">
+  <meta property="og:title" content="UMDC — Noé Mémorable">
+  <meta property="og:description" content="UMDC, l'album de Noé Mémorable, arrive prochainement. Rejoins la liste pour l'entendre avant tout le monde.">
+  <meta property="og:image" content="/assets/logo-umdc.png">
+  <link rel="icon" href="/assets/mark-umdc.png">
+  <link rel="preload" href="/fonts/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/models/collier.bin" as="fetch" crossorigin>
+  <script type="module" src="/src/site/main.js"></script>
+</head>
+<body>
+<div class="umdc-site" id="site">
+  <canvas class="stage" id="stage" aria-hidden="true"></canvas>
+
+  <div class="hud-tl hud-fade">
+    <img src="/assets/mark-umdc.png" alt="UMDC">
+    <span class="micro hud-artist" data-text="home.artist">Noé Mémorable</span>
+  </div>
+
+  <div class="hud-tr hud-fade">
+    <button type="button" class="umdc-sound" id="sound" aria-pressed="false">Son : <span id="sound-label">off</span></button>
+  </div>
+
+  <nav class="nav fade" aria-label="Navigation principale">
+    <button type="button" class="nav-item" data-go="reseaux" aria-expanded="false" aria-controls="umdc-panel" data-text="nav.reseaux">Réseaux</button>
+    <button type="button" class="nav-item" data-go="rejoindre" aria-expanded="false" aria-controls="umdc-panel" data-text="nav.rejoindre">Rejoindre</button>
+    <button type="button" class="nav-item" data-go="ecouter" aria-expanded="false" aria-controls="umdc-panel" data-text="nav.ecouter">Écouter</button>
+  </nav>
+
+  <div class="hud-br micro fade" data-text="home.dragHint">Glisse pour tourner autour</div>
+
+  <div class="hint" id="hint" hidden>
+    <div class="rise">
+      <div class="hint-inner">
+        <span class="hint-dot" aria-hidden="true"></span>
+        <button type="button" class="umdc-btn umdc-btn-ghost umdc-btn-m" id="unearth"><span class="umdc-btn-label" data-text="home.hintCta">Dégager la cartouche</span></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="home-cap" id="home">
+    <div class="fade">
+      <div class="home-inner rise">
+        <span class="micro accent" data-text="home.kicker">Noé Mémorable · UMDC</span>
+        <p data-text="home.text">L'album arrive prochainement. Rejoins la liste pour l'entendre avant tout le monde.</p>
+        <button type="button" class="umdc-btn umdc-btn-primary umdc-btn-m" data-go="rejoindre">
+          <span class="umdc-btn-label" data-text="home.cta">Rejoindre la liste</span><span class="umdc-btn-icon" aria-hidden="true">→</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <section id="umdc-panel" class="panel" hidden>
+    <div class="panel-head rise">
+      <button type="button" class="back" data-go="accueil">← Retour</button>
+    </div>
+    <div id="panel-body"></div>
+  </section>
+
+  <div class="intro is-loading" id="intro">
+    <div class="intro-bg"></div>
+    <div class="intro-center">
+      <img class="intro-logo" src="/assets/logo-umdc.png" alt="UMDC, un monde de chalance">
+      <span class="micro intro-artist" data-text="home.artist">Noé Mémorable</span>
+      <div class="intro-load">
+        <div class="intro-track"><div class="intro-bar" id="intro-bar"></div></div>
+        <span class="micro intro-label">Chargement · <span id="intro-pct">0 %</span></span>
+      </div>
+    </div>
+    <button type="button" class="umdc-btn umdc-btn-primary umdc-btn-m intro-enter" id="enter" hidden>
+      <span class="umdc-btn-label" data-text="home.enter">Entrer</span><span class="umdc-btn-icon" aria-hidden="true">→</span>
+    </button>
+    <button type="button" class="intro-skip micro" id="skip">Passer</button>
+  </div>
+</div>
+<audio id="audio" preload="none"></audio>
+</body>
+</html>
