@@ -25,10 +25,11 @@ Sur un hébergement Node (VPS, Render, Railway, Fly…) :
 ```bash
 npm ci
 npm run build
-ADMIN_PASSWORD="un-vrai-mot-de-passe" npm start   # http://localhost:3000
+cp .env.example .env    # puis mets un vrai ADMIN_PASSWORD dedans
+npm start               # http://localhost:3000
 ```
 
-Variables (voir `.env.example`) :
+Variables, dans un fichier `.env` à la racine (lu par `npm start`) ou dans l'environnement (voir `.env.example`) :
 
 | Variable | Rôle |
 | --- | --- |
