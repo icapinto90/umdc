@@ -296,6 +296,9 @@ export class Stage {
       '#include <map_fragment>',
       '  {',
       '    float eR = length((vLocalP.xz - vec2(0.0, 0.1)) / vec2(0.46, 0.8));',
+      /* au-delà de la zone fondue dans le sable, le reste du scan (ses coins) est coupé : près du bord de l'îlot, là où le sable
+         descend, il ressortirait comme une plaque */
+      '    if (eR > 1.08) discard;',
       '    vec3 dc = diffuseColor.rgb;',
       '    float lumD = dot(dc, vec3(0.2126, 0.7152, 0.0722));',
       '    float satD = max(max(dc.r, dc.g), dc.b) - min(min(dc.r, dc.g), dc.b);',
