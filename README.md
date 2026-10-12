@@ -99,10 +99,10 @@ La cartouche est un bloc de verre transparent, avec le DVD visible à l'intérie
 juste le logo et le collier avec ses perles. La jaquette et l'obi essayés un temps ne sont plus utilisés ;
 leurs sources restent dans `design/jaquette/` (et les textures dans `public/textures/`) pour y revenir.
 
-Le son est allumé par défaut : `public/audio/ambient.m4a`, l'extrait d'« Échos des plaines »,
-joue à volume modéré (`LEVEL` dans `src/site/sound.js`). Les navigateurs
-n'autorisent le son qu'après un geste : à la fin du chargement, l'écran s'ouvre sur l'îlot vu du dessus avec un bouton « Entrer », dont le clic
-lance la musique et la descente du panorama. Le bouton « Son » le coupe.
+Le son est allumé par défaut : `public/audio/ambient.m4a`, l'extrait d'« Échos des plaines », part au premier clic
+(ou toucher) n'importe où sur la page, les navigateurs n'autorisant le son qu'après un geste. Il commence à 5 s du début
+du morceau en fondu, s'efface en fondu avant la fin puis reprend à 5 s, en boucle (`LEVEL`, `START_AT`, `FADE_IN`,
+`FADE_OUT` dans `src/site/sound.js`). Le bouton « Son » le coupe.
 L'extrait, choisi dans le design, est public, même avant la sortie.
 
 Polices : Condor Medium (UMDC) et IBM Plex Mono (SIL OFL, licence dans

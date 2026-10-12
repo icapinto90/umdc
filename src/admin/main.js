@@ -184,13 +184,12 @@ const f = (label, sec, key, opts) => field(label, ...bind(sec, key), opts);
 
 function viewTextes() {
   return [
-    section('Accueil', "Le texte sous la cartouche, le bouton d'entrée et l'invitation à dégager la cartouche pendant l'intro.",
+    section('Accueil', "Le texte sous la cartouche, et l'invitation à dégager la cartouche pendant l'intro.",
       h('div', { class: 'grid-2' },
         f("Nom de l'artiste (sous le logo)", 'home', 'artist', { wide: true }),
         f('Surtitre', 'home', 'kicker'),
         f('Bouton', 'home', 'cta'),
         f('Texte', 'home', 'text', { multiline: true, wide: true }),
-        f("Bouton d'entrée (fin du chargement, lance la musique)", 'home', 'enter'),
         f("Bouton pour dégager la cartouche (pendant l'intro)", 'home', 'hintCta'),
         f('Indication en bas à droite', 'home', 'dragHint', { wide: true }))),
     section('Menu', null,

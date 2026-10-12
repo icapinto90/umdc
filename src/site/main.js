@@ -49,7 +49,7 @@ const NAMES = { accueil: 'Accueil', reseaux: 'Réseaux', rejoindre: 'Rejoindre',
 const app = {
   content: publicContent(DEFAULT_CONTENT),
   intro: true,
-  phase: 'loading', // loading → gate → panorama → unearth → ready
+  phase: 'loading', // loading → panorama → unearth → ready
   section: 'accueil',
   _camSec: null,
   closing: false,
@@ -76,9 +76,7 @@ const app = {
     clearTimeout(failTimer);
     this.progress = 100;
     renderIntro();
-    // Fin du chargement : l'écran s'ouvre sur l'îlot vu du dessus, avec le bouton « Entrer ». Son clic lance
-    // la musique (le navigateur n'autorise le son qu'après un geste) et la descente du panorama.
-    if (this.intro) setPhase('gate');
+    if (this.intro) phaseTimer = setTimeout(startPanorama, 150);
     else setPhase('ready');
   },
   /* Un clic sur la cartouche : pendant le panorama elle se dégage, ensuite elle ouvre « Écouter ». */
@@ -103,14 +101,8 @@ function setPhase(phase) {
   renderIntro();
 }
 
-function enter() {
-  if (app.phase !== 'gate') return;
-  if (sound.on) sound.start();
-  startPanorama();
-}
-
 function startPanorama() {
-  if (app.phase !== 'gate') return;
+  if (app.phase !== 'loading') return;
   setPhase('panorama');
   stage?.panorama();
 }
@@ -136,12 +128,10 @@ function skipIntro() {
 function renderIntro() {
   const intro = $('#intro');
   const ph = app.phase;
-  intro.className = 'intro ' + (ph === 'loading' ? 'is-loading' : ph === 'gate' ? 'is-gate' : ph === 'panorama' ? 'is-revealing' : 'is-done');
-  const btn = $('#enter'), show = ph === 'gate';
-  if (btn.hidden === show) { btn.hidden = !show; if (show) btn.focus({ preventScroll: true }); }
+  intro.className = 'intro ' + (ph === 'loading' ? 'is-loading' : ph === 'panorama' ? 'is-revealing' : 'is-done');
   $('#intro-bar').style.width = app.progress + '%';
   $('#intro-pct').textContent = app.progress + ' %';
-  intro.inert = ph !== 'loading' && ph !== 'gate' && ph !== 'panorama';
+  intro.inert = ph !== 'loading' && ph !== 'panorama';
 }
 
 /* ---------------------------------------------------------------- navigation */
@@ -496,17 +486,18 @@ function init() {
     const s = target.dataset.go;
     if (target.classList.contains('nav-item')) toggle(s); else go(s);
   });
-  // Le son est allumé à l'arrivée, mais la musique ne part qu'au clic sur « Entrer ».
+  // Le son est allumé à l'arrivée ; la musique part au premier clic (ou toucher, ou touche) n'importe où sur la page,
+  // le navigateur n'autorisant le son qu'après un geste. Le bouton Son garde la main : il ne déclenche pas ce départ.
   const showSound = (on) => {
     $('#sound').setAttribute('aria-pressed', on ? 'true' : 'false');
     $('#sound-label').textContent = on ? 'on' : 'off';
   };
   sound.on = true;
   showSound(true);
+  sound.startOnFirstGesture((e) => !!(e.target && e.target.closest && e.target.closest('#sound')));
   $('#sound').addEventListener('click', () => showSound(sound.toggle()));
   $('#unearth').addEventListener('click', startUnearth);
   $('#skip').addEventListener('click', skipIntro);
-  $('#enter').addEventListener('click', enter);
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && app.section !== 'accueil') go('accueil');
   });

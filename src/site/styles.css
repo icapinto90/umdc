@@ -132,14 +132,6 @@ a:hover { color: var(--accent-text); }
 .intro-track { position: relative; width: min(280px, 60vw); height: 2px; background: #c7b79f; overflow: hidden; }
 .intro-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: #2a221b; transition: width .8s var(--ease); }
 .intro-label { color: #6b5641; font-variant-numeric: tabular-nums; }
-/* Fin du chargement : l'écran beige se lève sur l'îlot vu du dessus ; le bouton « Entrer » attend en bas. */
-.intro.is-gate { pointer-events: none; }
-.intro.is-gate .intro-bg, .intro.is-gate .intro-center { opacity: 0; }
-.intro.is-gate .intro-center { transform: scale(1.05); filter: blur(6px); }
-.umdc-site .intro-enter { position: absolute; left: 50%; bottom: 56px; transform: translateX(-50%); pointer-events: auto; animation: umdc-enter 1.2s var(--ease) .6s both; }
-.umdc-site .intro-enter:hover { transform: translateX(-50%) translateY(-1px); }
-.umdc-site .intro-enter:active { transform: translateX(-50%); }
-@keyframes umdc-enter { from { opacity: 0; } to { opacity: 1; } }
 .intro.is-loading .intro-logo { animation: umdc-glow 3.6s ease-in-out infinite; }
 .intro-skip { position: absolute; right: 24px; bottom: 16px; min-height: 44px; padding: 0 8px; border: 0; background: transparent; color: var(--ink-muted); cursor: pointer; opacity: 0; pointer-events: none; transition: opacity .8s var(--ease) 1.4s, color .6s var(--ease); }
 .intro-skip:hover { color: var(--ink); }

@@ -7,7 +7,6 @@ export const DEFAULT_CONTENT = {
     kicker: 'Noé Mémorable · UMDC',
     text: "L'album arrive prochainement. Rejoins la liste pour l'entendre avant tout le monde.",
     cta: 'Rejoindre la liste',
-    enter: 'Entrer',
     hintCta: 'Dégager la cartouche',
     dragHint: 'Glisse pour tourner autour',
   },

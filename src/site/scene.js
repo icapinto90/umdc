@@ -953,7 +953,7 @@ export class Stage {
     const sec = app.camSec();
     const playing = app.isPlaying();
     const intro = app.intro, phase = app.phase;
-    const loading = intro && phase === 'loading', pano = intro && phase === 'panorama', gate = intro && phase === 'gate';
+    const loading = intro && phase === 'loading', pano = intro && phase === 'panorama';
     /* Le déblayage suit sa propre horloge : il se termine en douceur même si le menu apparaît déjà. */
     const UD = this.unearthDur();
     const tu = intro && s.unearthAt != null ? s.t - s.unearthAt : 99;
@@ -967,7 +967,7 @@ export class Stage {
     /* Caméra : brume → panorama → gros plan sur la cartouche, où elle reste.
        Les grands passages sont des fondus à durée fixe ; ensuite des ressorts doux pour les changements de section. */
     let P, w;
-    if (loading || gate) { P = this.introPose(); w = 1.2; }
+    if (loading) { P = this.introPose(); w = 1.2; }
     else if (pano) { P = this.panoramaPose(s.t - (s.panoAt == null ? s.t : s.panoAt), s.W, s.H); w = 1.0; }
     else { P = this.poseFor(sec, s.W, s.H); w = 1.6; }
     const tw = s.tw, twp = tw ? (s.t - tw.t0) / tw.dur : 1;
@@ -985,7 +985,7 @@ export class Stage {
     }
 
     /* La brume suit la distance : le sujet reste net, l'horizon se fond dans le ciel ; plus légère pendant le panorama. */
-    const fogT = loading ? 0.5 : (pano || gate ? 0.014 : 0.29 / Math.max(0.5, c.r));
+    const fogT = loading ? 0.5 : (pano ? 0.014 : 0.29 / Math.max(0.5, c.r));
     s.fogD += (fogT - s.fogD) * (rm ? 1 : 1 - Math.exp(-dt * 1.4));
     s.scene.fog.density = s.fogD;
 
@@ -1017,7 +1017,7 @@ export class Stage {
       const pc = this.ease((tu - 0.05) / (UD - 0.05)), B = this.coverBuried(), L = this.coverLifted();
       covKeys.forEach((k) => { cv[k] = (1 - pc) * (1 - pc) * B[k] + 2 * (1 - pc) * pc * L[k] + pc * pc * held[k]; cv[k + 'V'] = 0; });
     } else {
-      const CP = (loading || gate || pano) ? this.coverBuried() : held;
+      const CP = (loading || pano) ? this.coverBuried() : held;
       if (rm) covKeys.forEach((k) => { cv[k] = CP[k]; cv[k + 'V'] = 0; });
       else covKeys.forEach((k) => { if (k[0] === 'r') this.springAngle(cv, k, CP[k], 2.2, dt); else this.spring(cv, k, CP[k], 2.2, dt); });
     }
@@ -1034,7 +1034,7 @@ export class Stage {
     }
 
     /* Le tas s'affaisse, l'appel s'éteint, l'ombre (légère : c'est du verre) suit la cartouche. */
-    const heapT = (loading || gate || pano || (intro && tu < 0.1)) ? 1 : 0;
+    const heapT = (loading || pano || (intro && tu < 0.1)) ? 1 : 0;
     if (rm) s.heap.a = heapT; else this.spring(s.heap, 'a', heapT, 2.4, dt);
     const ha = Math.max(0, s.heap.a);
     s.heapMesh.visible = ha > 0.01;
@@ -1058,7 +1058,7 @@ export class Stage {
     s.uSkyMode.value = photo ? 1 : 0;
     if (photo) { s.uSkyTex.value = s.skyPhoto.tex; s.uSkyRot.value = SKY.view; s.sunAz = (SKY.uSun - SKY.view - 0.5) * Math.PI * 2; }
     else s.sunAz = Math.PI + 0.17;
-    const elT = photo ? SKY.el * Math.PI / 180 : ((loading || gate || pano) ? 9 * Math.PI / 180 : s.EL);
+    const elT = photo ? SKY.el * Math.PI / 180 : ((loading || pano) ? 9 * Math.PI / 180 : s.EL);
     s.el += (elT - s.el) * (rm ? 1 : 1 - Math.exp(-dt * 0.8));
     const sx = Math.cos(s.el) * Math.sin(s.sunAz), sy = Math.sin(s.el), sz = Math.cos(s.el) * Math.cos(s.sunAz);
     /* la lumière vient du même côté que le soleil de la photo, un peu plus haut */
@@ -1083,7 +1083,7 @@ export class Stage {
 
     /* Le ciel en cube suit les nuages ; les reflets du verre et du disque en découlent. */
     if (s.t - s.cubeAt > 1.5) { s.cubeAt = s.t; s.updateSky(); }
-    if (s.t - s.envAt > (loading || gate || pano || lifting ? 0.6 : 3)) { s.envAt = s.t; s.updateEnv(); }
+    if (s.t - s.envAt > (loading || pano || lifting ? 0.6 : 3)) { s.envAt = s.t; s.updateEnv(); }
 
     try { s.renderer.render(s.scene, cam); } catch (e) { /* rien */ }
   }
