@@ -93,7 +93,7 @@ app.get('/api/site', (req, res) => {
 });
 
 app.post('/api/subscribe', limiter(10, 10 * 60 * 1000), (req, res) => {
-  const phone = normalizePhone(typeof req.body?.phone === 'string' ? req.body.phone.slice(0, 40) : '');
+  const phone = normalizePhone(typeof req.body?.phone === 'string' ? req.body.phone : '', req.body?.country);
   if (!phone) return res.status(400).json({ error: 'Numéro invalide.' });
   if (req.body?.consent !== true) return res.status(400).json({ error: 'Consentement requis.' });
   // Un pot de miel : un champ caché que seuls les robots remplissent.

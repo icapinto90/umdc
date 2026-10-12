@@ -3,7 +3,9 @@ import '../shared/umdc-components.css';
 import './styles.css';
 import { Stage } from './scene.js';
 import { Ambient } from './sound.js';
-import { DEFAULT_CONTENT, publicContent, normalizePhone } from '../../server/content.js';
+import { DEFAULT_CONTENT, publicContent, normalizePhone, DEFAULT_COUNTRY } from '../../server/content.js';
+import { getCountries, getCountryCallingCode, getExampleNumber } from 'libphonenumber-js/mobile';
+import phoneExamples from 'libphonenumber-js/mobile/examples';
 
 /* ---------------------------------------------------------------- outils */
 
@@ -57,7 +59,7 @@ const app = {
   mouse: { x: 0, y: 0 },
   current: -1,
   playing: false,
-  signup: { status: 'idle', phone: '', consent: false, errors: {} },
+  signup: { status: 'idle', phone: '', country: DEFAULT_COUNTRY, consent: false, errors: {} },
 
   get released() { return this.content.release.released; },
   get tracks() { return this.content.tracks; },
@@ -247,11 +249,20 @@ function viewRejoindre() {
 
   const phoneErr = st.errors.phone, consentErr = st.errors.consent;
   const input = h('input', {
-    id: 'nl-phone', class: 'umdc-input', type: 'tel', name: 'phone', autocomplete: 'tel', inputmode: 'tel',
-    placeholder: c.placeholder, 'aria-invalid': phoneErr ? 'true' : null, 'aria-describedby': phoneErr ? 'nl-phone-err' : null,
+    id: 'nl-phone', class: 'umdc-input', type: 'tel', name: 'phone', autocomplete: 'tel-national', inputmode: 'tel',
+    placeholder: phoneExample(st.country), 'aria-invalid': phoneErr ? 'true' : null, 'aria-describedby': phoneErr ? 'nl-phone-err' : null,
     onInput: (e) => { st.phone = e.target.value; },
   });
   input.value = st.phone;
+  // à gauche, le pays (la Suisse par défaut) : un vrai menu déroulant, invisible, sous un petit affichage « drapeau +41 »
+  const shown = h('span', { class: 'phone-country-shown', 'aria-hidden': 'true' });
+  const showCountry = () => { shown.textContent = flag(st.country) + ' +' + getCountryCallingCode(st.country); };
+  showCountry();
+  const select = h('select', {
+    id: 'nl-country', name: 'country', class: 'phone-country-select', 'aria-label': 'Pays',
+    onChange: (e) => { st.country = e.target.value; showCountry(); input.placeholder = phoneExample(st.country); },
+  }, countryOptions().map(([code, label]) => (code ? h('option', { value: code }, label) : h('option', { disabled: true }, '──────────'))));
+  select.value = st.country;
   const check = h('input', {
     type: 'checkbox', id: 'nl-consent', class: 'umdc-check-input', name: 'consent',
     'aria-invalid': consentErr ? 'true' : null, 'aria-describedby': consentErr ? 'nl-consent-err' : null,
@@ -273,7 +284,7 @@ function viewRejoindre() {
       h('div', { class: 'umdc-signup-row' },
         h('div', { class: `umdc-field umdc-signup-field${phoneErr ? ' is-error' : ''}` },
           h('label', { for: 'nl-phone', class: 'umdc-field-label' }, c.phoneLabel),
-          input,
+          h('div', { class: 'phone-row' }, h('div', { class: 'phone-country umdc-input' }, shown, select), input),
           phoneErr ? errorLine('nl-phone-err', phoneErr) : null),
         submit),
       h('div', { class: `umdc-check${consentErr ? ' is-error' : ''}` },
@@ -293,14 +304,39 @@ function viewRejoindre() {
         : null));
 }
 
+/* Le choix du pays : drapeau, nom en français, indicatif ; les plus proches en tête, puis tous les pays par ordre alphabétique. */
+const TOP_COUNTRIES = ['CH', 'FR', 'BE', 'LU', 'DE', 'IT', 'ES', 'PT', 'GB', 'CA', 'US'];
+let countryList = null;
+function flag(code) {
+  return String.fromCodePoint(...[...code].map((ch) => 0x1f1e6 + ch.charCodeAt(0) - 65));
+}
+function countryOptions() {
+  if (countryList) return countryList;
+  let names;
+  try { names = new Intl.DisplayNames(['fr'], { type: 'region' }); } catch { names = { of: (c) => c }; }
+  const label = (c) => `${flag(c)} ${names.of(c) || c} (+${getCountryCallingCode(c)})`;
+  const all = getCountries().filter((c) => !TOP_COUNTRIES.includes(c))
+    .map((c) => [c, label(c), names.of(c) || c]).sort((a, b) => a[2].localeCompare(b[2], 'fr'));
+  countryList = [...TOP_COUNTRIES.map((c) => [c, label(c)]), [null, ''], ...all.map(([c, l]) => [c, l])];
+  return countryList;
+}
+function phoneExample(country) {
+  try { return getExampleNumber(country, phoneExamples).formatNational(); } catch { return ''; }
+}
+
 async function submitSignup(e) {
   e.preventDefault();
   const st = app.signup;
   const form = e.currentTarget;
   st.phone = form.phone.value.trim();
+  st.country = form.country.value;
   st.consent = form.consent.checked;
   const errors = {};
-  if (!normalizePhone(st.phone)) errors.phone = 'Ce numéro ne passe pas. Vérifie-le (par ex. 079 123 45 67, ou +33 6 12 34 56 78).';
+  if (!normalizePhone(st.phone, st.country)) {
+    errors.phone = st.phone
+      ? `Ce numéro de portable n'est pas valide pour ce pays. Vérifie-le (par ex. ${phoneExample(st.country)}).`
+      : 'Entre ton numéro de portable.';
+  }
   if (!st.consent) errors.consent = 'Coche la case pour recevoir les nouvelles par SMS.';
   st.errors = errors;
   if (Object.keys(errors).length) {
@@ -316,7 +352,7 @@ async function submitSignup(e) {
     const res = await fetch('/api/subscribe', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone: st.phone, consent: true, website: form.website.value }),
+      body: JSON.stringify({ phone: st.phone, country: st.country, consent: true, website: form.website.value }),
     });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));

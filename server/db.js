@@ -36,7 +36,7 @@ export function openDb(dataDir) {
     if (row) {
       try {
         const c = JSON.parse(row.json);
-        for (const [sec, keys] of [['newsletter', ['text', 'placeholder', 'consent']], ['privacy', ['text']]]) {
+        for (const [sec, keys] of [['newsletter', ['text', 'consent']], ['privacy', ['text']]]) {
           for (const k of keys) if (c[sec] && /mail|@/i.test(c[sec][k] || '')) c[sec][k] = DEFAULT_CONTENT[sec][k];
         }
         db.prepare('UPDATE content SET json = ? WHERE id = 1').run(JSON.stringify(c));

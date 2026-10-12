@@ -1,7 +1,11 @@
 import '../shared/tokens.css';
 import '../shared/umdc-components.css';
 import './admin.css';
-import { formatPhone } from '../../server/content.js';
+import { formatPhone, phoneCountry } from '../../server/content.js';
+
+/* « 🇨🇭 +41 79 123 45 67 » */
+const flagOf = (c) => (c ? String.fromCodePoint(...[...c].map((ch) => 0x1f1e6 + ch.charCodeAt(0) - 65)) + ' ' : '');
+const showPhone = (p) => flagOf(phoneCountry(p)) + formatPhone(p);
 
 /* ---------------------------------------------------------------- outils */
 
@@ -206,7 +210,7 @@ function viewTextes() {
       h('div', { class: 'grid-2' },
         f('Titre', 'newsletter', 'title'), f('Bouton', 'newsletter', 'button'),
         f('Texte', 'newsletter', 'text', { multiline: true, wide: true }),
-        f('Libellé du champ', 'newsletter', 'phoneLabel'), f('Exemple dans le champ', 'newsletter', 'placeholder'),
+        f('Libellé du champ', 'newsletter', 'phoneLabel'),
         f('Case de consentement', 'newsletter', 'consent', { multiline: true, wide: true }),
         f('Titre après inscription', 'newsletter', 'successTitle'),
         f('Texte après inscription', 'newsletter', 'successText', { wide: true }))),
@@ -395,7 +399,7 @@ function viewEmails() {
     tbody));
   const fill = () => tbody.replaceChildren(...(state.subs.length
     ? state.subs.map((s) => h('tr', null,
-      h('td', { class: 'email' }, formatPhone(s.phone)),
+      h('td', { class: 'email' }, showPhone(s.phone)),
       h('td', { class: 'date' }, fmtDate(s.created_at)),
       h('td', { class: 'act' }, h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Supprimer ' + formatPhone(s.phone), onClick: () => deleteSub(s) }, '×'))))
     : [h('tr', null, h('td', { colspan: '3', class: 'date' }, state.q ? 'Aucun numéro ne correspond.' : 'Aucune inscription pour l’instant.'))]));

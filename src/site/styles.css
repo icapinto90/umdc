@@ -202,3 +202,11 @@ a:hover { color: var(--accent-text); }
 
 /* Le bouton Son reste un simple texte, allumé ou non (pas d'encadré bleu). */
 .umdc-site .umdc-sound[aria-pressed="true"] { background: transparent; color: var(--ink); }
+
+/* Inscription : à gauche le pays (drapeau + indicatif, menu déroulant natif invisible par-dessus), à droite le numéro. */
+.phone-row { display: flex; gap: 8px; align-items: stretch; }
+.phone-row > .umdc-input { flex: 1 1 auto; min-width: 0; }
+.umdc-site .phone-country { position: relative; flex: none; display: flex; align-items: center; gap: 6px; width: auto; padding: 0 30px 0 12px; cursor: pointer; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.phone-country::after { content: ""; position: absolute; right: 12px; top: 50%; width: 7px; height: 7px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: translateY(-70%) rotate(45deg); pointer-events: none; }
+.phone-country-select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; font-size: 16px; appearance: none; }
+.phone-country:focus-within { box-shadow: var(--focus-ring); }

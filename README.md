@@ -68,8 +68,10 @@ page déjà ouverte se met à jour seule à l'heure de sortie. L'admin connecté
 
 ### Les inscrits (SMS)
 
-« Rejoindre » demande un numéro de téléphone : les nouvelles partent par SMS. Le numéro est vérifié et rangé au
-format international (+41… ; sans indicatif, c'est la Suisse : « 079 123 45 67 » devient +41791234567). Chaque
+« Rejoindre » demande un numéro de portable : les nouvelles partent par SMS. À gauche du champ, le pays (la Suisse
+par défaut), à droite le numéro. Il est vérifié avec libphonenumber-js (seuls les vrais numéros de portable du pays
+passent, sur le site comme sur le serveur), rangé au format international (+41791234567) et affiché mis en forme
+dans l'admin (🇨🇭 +41 79 123 45 67). Chaque
 inscription garde la date du consentement (case obligatoire) ; un numéro déjà inscrit ne crée pas de doublon.
 L'export CSV (UTF-8 avec BOM) s'importe dans un outil d'envoi de SMS (Brevo, Twilio…). Aucun SMS n'est envoyé
 automatiquement. L'ancienne liste d'emails a été supprimée au passage aux numéros.

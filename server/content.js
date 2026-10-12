@@ -1,3 +1,5 @@
+import { parsePhoneNumberFromString, getCountries } from 'libphonenumber-js/mobile';
+
 // Contenu éditable du site : valeurs par défaut (reprises du design) et nettoyage
 // de ce que le back-office envoie. Tout ce qui n'est pas prévu ici est ignoré.
 
@@ -8,24 +10,26 @@ export function parseLength(v) {
   return Number.isFinite(n) && n > 0 ? Math.min(120, Math.max(5, Math.round(n))) : PREVIEW_SECONDS;
 }
 
-/* Les numéros de téléphone : on accepte « 079 123 45 67 », « +41 79… », « 0041 79… », « +33 6… » ;
-   sans indicatif, c'est la Suisse (+41). Renvoie le numéro au format international (+41791234567), ou '' s'il ne va pas. */
-export function normalizePhone(raw) {
-  let s = String(raw || '').trim().replace(/[\s.\-()/]/g, '');
-  if (s.startsWith('00')) s = '+' + s.slice(2);
-  else if (!s.startsWith('+')) s = s.startsWith('0') ? '+41' + s.slice(1) : '+41' + s;
-  if (!/^\+[1-9]\d{7,14}$/.test(s)) return '';
-  if (s.startsWith('+41') && !/^\+41\d{9}$/.test(s)) return '';
-  return s;
+/* Les numéros de téléphone (inscription SMS) : vérifiés avec libphonenumber-js, métadonnées « mobile » (seuls les numéros
+   de portable passent : les SMS n'arrivent pas sur un fixe). Le pays choisi à gauche du champ sert d'indicatif par défaut ;
+   un numéro tapé avec son indicatif (+33…) passe aussi. Renvoie le format international (+41791234567), ou ''. */
+export const DEFAULT_COUNTRY = 'CH';
+export function normalizePhone(raw, country = DEFAULT_COUNTRY) {
+  const c = isCountry(country) ? country : DEFAULT_COUNTRY;
+  const p = parsePhoneNumberFromString(String(raw || '').slice(0, 40), c);
+  return p && p.isValid() ? p.number : '';
 }
-
-/* +41791234567 → « +41 79 123 45 67 » (les autres pays : indicatif puis le reste). */
-export function formatPhone(p) {
-  const m = /^\+41(\d{2})(\d{3})(\d{2})(\d{2})$/.exec(p || '');
-  if (m) return `+41 ${m[1]} ${m[2]} ${m[3]} ${m[4]}`;
-  const f = /^\+33(\d)(\d{2})(\d{2})(\d{2})(\d{2})$/.exec(p || '');
-  if (f) return `+33 ${f.slice(1).join(' ')}`;
-  return p || '';
+export function isCountry(c) {
+  return typeof c === 'string' && getCountries().includes(c);
+}
+/* +41791234567 → « +41 79 123 45 67 » ; et le pays du numéro (CH). */
+export function formatPhone(e164) {
+  const p = parsePhoneNumberFromString(e164 || '');
+  return p ? p.formatInternational() : e164 || '';
+}
+export function phoneCountry(e164) {
+  const p = parsePhoneNumberFromString(e164 || '');
+  return (p && p.country) || '';
 }
 
 export const DEFAULT_CONTENT = {
@@ -56,7 +60,6 @@ export const DEFAULT_CONTENT = {
     title: 'Rejoins la liste',
     text: "La sortie d'UMDC, les premiers extraits et les nouvelles de Noé Mémorable, directement par SMS.",
     phoneLabel: 'Ton numéro',
-    placeholder: '079 123 45 67',
     button: "S'inscrire",
     consent: "J'accepte de recevoir les nouvelles d'UMDC par SMS. Désinscription à tout moment, sur simple message.",
     successTitle: 'Bienvenue',
