@@ -36,7 +36,7 @@ Variables, dans un fichier `.env` à la racine (lu par `npm start`) ou dans l'en
 | --- | --- |
 | `ADMIN_PASSWORD` | **Obligatoire en production.** Mot de passe du back-office. |
 | `PORT` | Port d'écoute (3000 par défaut). |
-| `DATA_DIR` | Dossier de la base et des sons (`data/` par défaut). **Doit être persistant** (volume/disque) : c'est là que vivent les emails. |
+| `DATA_DIR` | Dossier de la base et des sons (`data/` par défaut). **Doit être persistant** (volume/disque) : c'est là que vivent les numéros des inscrits. |
 | `TRUST_PROXY` | `true` derrière un proxy (Nginx, Render…) pour que la limite d'essais se base sur la vraie IP. |
 
 Sers le site en HTTPS : le cookie de session admin est `Secure` en production.
@@ -51,11 +51,11 @@ invite à écouter la suite sur les plateformes renseignées.
 
 | Onglet | Ce qu'on y fait |
 | --- | --- |
-| **Textes** | Tous les textes du site : nom de l'artiste (sous le logo), accueil, menu, panneaux, newsletter, confidentialité. |
+| **Textes** | Tous les textes du site : nom de l'artiste (sous le logo), accueil, menu, panneaux, inscription SMS, confidentialité. |
 | **Réseaux** | Ajouter, renommer, réordonner, retirer les réseaux (nom, compte, URL). |
 | **Sortie & tracklist** | Ouverture d'« Écouter » (automatique à une date, forcée ouverte, forcée fermée), titre de l'album, plateformes, titres (feat., durée, son associé, en ligne ou non). |
 | **Sons** | Envoyer les fichiers audio (glisser-déposer, 60 Mo max), les écouter, les supprimer. |
-| **Emails** | Les inscrits, recherche, suppression, export CSV, copie des adresses. |
+| **Inscrits SMS** | Les numéros inscrits, recherche, suppression, export CSV, copie des numéros. |
 
 `Ctrl/Cmd + S` enregistre. Rien ne change sur le site avant « Enregistrer ».
 
@@ -66,12 +66,13 @@ plateformes, ni sons, et `/api/audio/…` répond 404. En mode automatique, une
 page déjà ouverte se met à jour seule à l'heure de sortie. L'admin connecté peut
 écouter les sons à tout moment.
 
-### Les emails
+### Les inscrits (SMS)
 
-Chaque inscription garde l'adresse et la date du consentement (case obligatoire).
-Une adresse déjà inscrite ne crée pas de doublon. L'export CSV (UTF-8 avec BOM)
-s'ouvre dans Excel et s'importe dans Brevo ou Mailchimp. Aucun mail n'est envoyé
-automatiquement.
+« Rejoindre » demande un numéro de téléphone : les nouvelles partent par SMS. Le numéro est vérifié et rangé au
+format international (+41… ; sans indicatif, c'est la Suisse : « 079 123 45 67 » devient +41791234567). Chaque
+inscription garde la date du consentement (case obligatoire) ; un numéro déjà inscrit ne crée pas de doublon.
+L'export CSV (UTF-8 avec BOM) s'importe dans un outil d'envoi de SMS (Brevo, Twilio…). Aucun SMS n'est envoyé
+automatiquement. L'ancienne liste d'emails a été supprimée au passage aux numéros.
 
 ## Structure
 

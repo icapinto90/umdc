@@ -3,14 +3,13 @@ import '../shared/umdc-components.css';
 import './styles.css';
 import { Stage } from './scene.js';
 import { Ambient } from './sound.js';
-import { DEFAULT_CONTENT, publicContent } from '../../server/content.js';
+import { DEFAULT_CONTENT, publicContent, normalizePhone } from '../../server/content.js';
 
 /* ---------------------------------------------------------------- outils */
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const pad2 = (n) => String(n).padStart(2, '0');
 const fmtTime = (sec) => (Number.isFinite(sec) ? pad2(Math.floor(sec / 60)) + ':' + pad2(Math.floor(sec % 60)) : '00:00');
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const CONDOR_SAFE = /^[A-Za-z .\s]*$/;
 const reducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
@@ -58,7 +57,7 @@ const app = {
   mouse: { x: 0, y: 0 },
   current: -1,
   playing: false,
-  signup: { status: 'idle', email: '', consent: false, errors: {} },
+  signup: { status: 'idle', phone: '', consent: false, errors: {} },
 
   get released() { return this.content.release.released; },
   get tracks() { return this.content.tracks; },
@@ -246,13 +245,13 @@ function viewRejoindre() {
         h('p', { class: 'umdc-signup-desc' }, c.successText)));
   }
 
-  const emailErr = st.errors.email, consentErr = st.errors.consent;
+  const phoneErr = st.errors.phone, consentErr = st.errors.consent;
   const input = h('input', {
-    id: 'nl-email', class: 'umdc-input', type: 'email', name: 'email', autocomplete: 'email', inputmode: 'email',
-    placeholder: c.placeholder, 'aria-invalid': emailErr ? 'true' : null, 'aria-describedby': emailErr ? 'nl-email-err' : null,
-    onInput: (e) => { st.email = e.target.value; },
+    id: 'nl-phone', class: 'umdc-input', type: 'tel', name: 'phone', autocomplete: 'tel', inputmode: 'tel',
+    placeholder: c.placeholder, 'aria-invalid': phoneErr ? 'true' : null, 'aria-describedby': phoneErr ? 'nl-phone-err' : null,
+    onInput: (e) => { st.phone = e.target.value; },
   });
-  input.value = st.email;
+  input.value = st.phone;
   const check = h('input', {
     type: 'checkbox', id: 'nl-consent', class: 'umdc-check-input', name: 'consent',
     'aria-invalid': consentErr ? 'true' : null, 'aria-describedby': consentErr ? 'nl-consent-err' : null,
@@ -272,10 +271,10 @@ function viewRejoindre() {
       c.text ? h('p', { class: 'umdc-signup-desc' }, c.text) : null),
     h('form', { class: 'umdc-signup-form', novalidate: true, onSubmit: submitSignup },
       h('div', { class: 'umdc-signup-row' },
-        h('div', { class: `umdc-field umdc-signup-field${emailErr ? ' is-error' : ''}` },
-          h('label', { for: 'nl-email', class: 'umdc-field-label' }, c.emailLabel),
+        h('div', { class: `umdc-field umdc-signup-field${phoneErr ? ' is-error' : ''}` },
+          h('label', { for: 'nl-phone', class: 'umdc-field-label' }, c.phoneLabel),
           input,
-          emailErr ? errorLine('nl-email-err', emailErr) : null),
+          phoneErr ? errorLine('nl-phone-err', phoneErr) : null),
         submit),
       h('div', { class: `umdc-check${consentErr ? ' is-error' : ''}` },
         check,
@@ -298,16 +297,16 @@ async function submitSignup(e) {
   e.preventDefault();
   const st = app.signup;
   const form = e.currentTarget;
-  st.email = form.email.value.trim();
+  st.phone = form.phone.value.trim();
   st.consent = form.consent.checked;
   const errors = {};
-  if (!EMAIL_RE.test(st.email)) errors.email = 'Cette adresse ne passe pas. Vérifie-la.';
-  if (!st.consent) errors.consent = 'Coche la case pour recevoir la newsletter.';
+  if (!normalizePhone(st.phone)) errors.phone = 'Ce numéro ne passe pas. Vérifie-le (par ex. 079 123 45 67, ou +33 6 12 34 56 78).';
+  if (!st.consent) errors.consent = 'Coche la case pour recevoir les nouvelles par SMS.';
   st.errors = errors;
   if (Object.keys(errors).length) {
     st.status = 'idle';
     renderPanel();
-    $(errors.email ? '#nl-email' : '#nl-consent')?.focus();
+    $(errors.phone ? '#nl-phone' : '#nl-consent')?.focus();
     return;
   }
   sound.blip(784);
@@ -317,7 +316,7 @@ async function submitSignup(e) {
     const res = await fetch('/api/subscribe', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: st.email, consent: true, website: form.website.value }),
+      body: JSON.stringify({ phone: st.phone, consent: true, website: form.website.value }),
     });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));

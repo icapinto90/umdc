@@ -14,9 +14,9 @@ export function openDb(dataDir) {
       json TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
-    CREATE TABLE IF NOT EXISTS subscribers (
+    CREATE TABLE IF NOT EXISTS phones (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      email TEXT NOT NULL UNIQUE COLLATE NOCASE,
+      phone TEXT NOT NULL UNIQUE,
       consent_at TEXT NOT NULL,
       created_at TEXT NOT NULL
     );
@@ -27,6 +27,22 @@ export function openDb(dataDir) {
   `);
 
   const now = () => new Date().toISOString();
+
+  /* Passage des emails aux numéros (une seule fois) : l'ancienne liste d'emails est supprimée, et les textes enregistrés
+     qui parlaient d'e-mail reprennent les nouveaux textes (SMS). */
+  if (db.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'subscribers'").get()) {
+    db.exec('DROP TABLE subscribers');
+    const row = db.prepare('SELECT json FROM content WHERE id = 1').get();
+    if (row) {
+      try {
+        const c = JSON.parse(row.json);
+        for (const [sec, keys] of [['newsletter', ['text', 'placeholder', 'consent']], ['privacy', ['text']]]) {
+          for (const k of keys) if (c[sec] && /mail|@/i.test(c[sec][k] || '')) c[sec][k] = DEFAULT_CONTENT[sec][k];
+        }
+        db.prepare('UPDATE content SET json = ? WHERE id = 1').run(JSON.stringify(c));
+      } catch { /* contenu illisible : on n'y touche pas */ }
+    }
+  }
   const hash = (token) => crypto.createHash('sha256').update(token).digest('hex');
 
   const getContentStmt = db.prepare('SELECT json, updated_at FROM content WHERE id = 1');
@@ -48,20 +64,22 @@ export function openDb(dataDir) {
       return at;
     },
 
-    addSubscriber(email) {
+    addSubscriber(phone) {
       const at = now();
-      const r = db.prepare('INSERT OR IGNORE INTO subscribers (email, consent_at, created_at) VALUES (?, ?, ?)').run(email, at, at);
+      const r = db.prepare('INSERT OR IGNORE INTO phones (phone, consent_at, created_at) VALUES (?, ?, ?)').run(phone, at, at);
       return r.changes > 0;
     },
+    // la recherche ne regarde que les chiffres : « 079 123 » trouve +41791234567
     listSubscribers(q = '') {
-      const like = '%' + q.replace(/[\\%_]/g, (m) => '\\' + m) + '%';
-      return db.prepare("SELECT id, email, consent_at, created_at FROM subscribers WHERE email LIKE ? ESCAPE '\\' ORDER BY created_at DESC").all(like);
+      let digits = q.replace(/\D/g, '');
+      if (digits.startsWith('0') && !digits.startsWith('00')) digits = digits.slice(1);
+      return db.prepare("SELECT id, phone, consent_at, created_at FROM phones WHERE phone LIKE ? ORDER BY created_at DESC").all('%' + digits + '%');
     },
     countSubscribers() {
-      return db.prepare('SELECT COUNT(*) AS n FROM subscribers').get().n;
+      return db.prepare('SELECT COUNT(*) AS n FROM phones').get().n;
     },
     deleteSubscriber(id) {
-      return db.prepare('DELETE FROM subscribers WHERE id = ?').run(id).changes > 0;
+      return db.prepare('DELETE FROM phones WHERE id = ?').run(id).changes > 0;
     },
 
     createSession(ttlMs) {

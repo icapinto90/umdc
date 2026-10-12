@@ -10,7 +10,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { openDb } from './db.js';
-import { sanitizeContent, publicContent } from './content.js';
+import { sanitizeContent, publicContent, normalizePhone } from './content.js';
 import { ensurePreview, warmPreviews } from './preview.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -82,7 +82,6 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 /* ------------------------------------------------------------ API publique */
 
@@ -94,13 +93,13 @@ app.get('/api/site', (req, res) => {
 });
 
 app.post('/api/subscribe', limiter(10, 10 * 60 * 1000), (req, res) => {
-  const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
-  if (!EMAIL_RE.test(email) || email.length > 254) return res.status(400).json({ error: 'Adresse invalide.' });
+  const phone = normalizePhone(typeof req.body?.phone === 'string' ? req.body.phone.slice(0, 40) : '');
+  if (!phone) return res.status(400).json({ error: 'Numéro invalide.' });
   if (req.body?.consent !== true) return res.status(400).json({ error: 'Consentement requis.' });
   // Un pot de miel : un champ caché que seuls les robots remplissent.
   if (req.body?.website) return res.json({ ok: true });
-  db.addSubscriber(email);
-  // Même réponse si l'adresse était déjà inscrite : on ne révèle pas qui est sur la liste.
+  db.addSubscriber(phone);
+  // Même réponse si le numéro était déjà inscrit : on ne révèle pas qui est sur la liste.
   res.json({ ok: true });
 });
 
@@ -168,10 +167,11 @@ app.get('/api/admin/subscribers.csv', requireAdmin, (req, res) => {
     if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; // pas de formule dans un tableur
     return '"' + s.replace(/"/g, '""') + '"';
   };
-  const csv = ['email,inscrit_le,consentement_le', ...rows.map((r) => [r.email, r.created_at, r.consent_at].map(esc).join(','))].join('\r\n');
+  // le numéro (+41…) est vérifié à l'inscription : il sort tel quel, au format international attendu par les outils d'envoi de SMS
+  const csv = ['telephone,inscrit_le,consentement_le', ...rows.map((r) => ['"' + r.phone + '"', esc(r.created_at), esc(r.consent_at)].join(','))].join('\r\n');
   const day = new Date().toISOString().slice(0, 10);
   res.set('Content-Type', 'text/csv; charset=utf-8');
-  res.set('Content-Disposition', `attachment; filename="umdc-emails-${day}.csv"`);
+  res.set('Content-Disposition', `attachment; filename="umdc-numeros-${day}.csv"`);
   res.send('﻿' + csv + '\r\n');
 });
 

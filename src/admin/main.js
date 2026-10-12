@@ -1,6 +1,7 @@
 import '../shared/tokens.css';
 import '../shared/umdc-components.css';
 import './admin.css';
+import { formatPhone } from '../../server/content.js';
 
 /* ---------------------------------------------------------------- outils */
 
@@ -86,7 +87,7 @@ const TABS = [
   ['reseaux', 'Réseaux'],
   ['sortie', 'Sortie & tracklist'],
   ['sons', 'Sons'],
-  ['emails', 'Emails'],
+  ['emails', 'Inscrits SMS'],
 ];
 
 const state = {
@@ -205,7 +206,7 @@ function viewTextes() {
       h('div', { class: 'grid-2' },
         f('Titre', 'newsletter', 'title'), f('Bouton', 'newsletter', 'button'),
         f('Texte', 'newsletter', 'text', { multiline: true, wide: true }),
-        f('Libellé du champ', 'newsletter', 'emailLabel'), f('Exemple dans le champ', 'newsletter', 'placeholder'),
+        f('Libellé du champ', 'newsletter', 'phoneLabel'), f('Exemple dans le champ', 'newsletter', 'placeholder'),
         f('Case de consentement', 'newsletter', 'consent', { multiline: true, wide: true }),
         f('Titre après inscription', 'newsletter', 'successTitle'),
         f('Texte après inscription', 'newsletter', 'successText', { wide: true }))),
@@ -385,32 +386,32 @@ async function deleteFile(name) {
   } catch (e) { toast(e.message, true); }
 }
 
-/* ---------- Emails ---------- */
+/* ---------- Inscrits (numéros de téléphone, pour les SMS) ---------- */
 
 function viewEmails() {
   const tbody = h('tbody');
   const table = h('div', { class: 'table-wrap' }, h('table', null,
-    h('thead', null, h('tr', null, h('th', null, 'Email'), h('th', null, 'Inscrit le'), h('th', null, h('span', { class: 'umdc-sr' }, 'Actions')))),
+    h('thead', null, h('tr', null, h('th', null, 'Numéro'), h('th', null, 'Inscrit le'), h('th', null, h('span', { class: 'umdc-sr' }, 'Actions')))),
     tbody));
   const fill = () => tbody.replaceChildren(...(state.subs.length
     ? state.subs.map((s) => h('tr', null,
-      h('td', { class: 'email' }, s.email),
+      h('td', { class: 'email' }, formatPhone(s.phone)),
       h('td', { class: 'date' }, fmtDate(s.created_at)),
-      h('td', { class: 'act' }, h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Supprimer ' + s.email, onClick: () => deleteSub(s) }, '×'))))
-    : [h('tr', null, h('td', { colspan: '3', class: 'date' }, state.q ? 'Aucune adresse ne correspond.' : 'Aucune inscription pour l’instant.'))]));
+      h('td', { class: 'act' }, h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Supprimer ' + formatPhone(s.phone), onClick: () => deleteSub(s) }, '×'))))
+    : [h('tr', null, h('td', { colspan: '3', class: 'date' }, state.q ? 'Aucun numéro ne correspond.' : 'Aucune inscription pour l’instant.'))]));
   fill();
   state.fillSubs = fill;
 
   let t;
-  return section('Emails', 'Les adresses inscrites via « Rejoindre », avec la date de leur consentement. L’export CSV s’ouvre dans Excel, Numbers, Google Sheets, Brevo ou Mailchimp.',
+  return section('Inscrits SMS', 'Les numéros inscrits via « Rejoindre », au format international (+41…), avec la date de leur consentement. L’export CSV s’importe dans un outil d’envoi de SMS (Brevo, Twilio…) ou s’ouvre dans un tableur.',
     h('div', { style: 'display:flex;gap:16px;align-items:baseline;flex-wrap:wrap' },
       h('span', { class: 'stat', id: 'subs-total' }, String(state.subsTotal)),
       h('span', { class: 'micro muted' }, 'inscrit' + (state.subsTotal > 1 ? 's' : ''))),
     h('div', { class: 'mail-tools' },
-      field('Rechercher', state.q, (v) => { state.q = v; clearTimeout(t); t = setTimeout(loadSubs, 250); }, { type: 'search', placeholder: 'nom@…' }),
+      field('Rechercher', state.q, (v) => { state.q = v; clearTimeout(t); t = setTimeout(loadSubs, 250); }, { type: 'search', placeholder: '079 123…' }),
       h('a', { class: 'umdc-btn umdc-btn-primary umdc-btn-m', href: '/api/admin/subscribers.csv', download: true },
         h('span', { class: 'umdc-btn-label' }, 'Exporter en CSV'), h('span', { class: 'umdc-btn-icon', 'aria-hidden': 'true' }, '↓')),
-      btn('Copier les adresses', { onClick: copySubs })),
+      btn('Copier les numéros', { onClick: copySubs })),
     table);
 }
 
@@ -428,19 +429,19 @@ async function loadSubs() {
 }
 
 async function deleteSub(s) {
-  if (!window.confirm(`Supprimer ${s.email} de la liste ?`)) return;
+  if (!window.confirm(`Supprimer ${formatPhone(s.phone)} de la liste ?`)) return;
   try {
     await api('/admin/subscribers/' + s.id, { method: 'DELETE' });
-    toast('Adresse supprimée');
+    toast('Numéro supprimé');
     loadSubs();
   } catch (e) { toast(e.message, true); }
 }
 
 async function copySubs() {
   try {
-    const text = state.subs.map((s) => s.email).join(', ');
+    const text = state.subs.map((s) => s.phone).join('\n');
     await navigator.clipboard.writeText(text);
-    toast(state.subs.length + ' adresse(s) copiée(s)');
+    toast(state.subs.length + ' numéro(s) copié(s)');
   } catch { toast('Copie impossible dans ce navigateur.', true); }
 }
 
