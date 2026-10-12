@@ -180,7 +180,7 @@ export function isReleased(content, now = Date.now()) {
   return Number.isFinite(t) && now >= t;
 }
 
-// Ce que voit le public : avant la sortie, ni titres, ni sons, ni plateformes.
+// Ce que voit le public : avant la sortie, ni titres ni sons ; les plateformes (Spotify, Apple Music…) sont toujours visibles.
 export function publicContent(content, now = Date.now()) {
   const released = isReleased(content, now);
   const { tracks, platforms, release, ...rest } = content;
@@ -195,7 +195,7 @@ export function publicContent(content, now = Date.now()) {
       coverLabel: release.coverLabel,
     },
     socials: content.socials.filter((s) => s.url && s.name),
-    platforms: released ? platforms.filter((p) => p.url && p.name) : [],
+    platforms: platforms.filter((p) => p.url && p.name),
     trackCount: tracks.filter((tr) => tr.enabled).length,
     tracks: released
       ? tracks.filter((tr) => tr.enabled).map((tr) => ({

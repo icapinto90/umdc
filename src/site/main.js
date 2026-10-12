@@ -391,6 +391,9 @@ function viewEcouter() {
           h('span', { class: 'ghost-num' }), h('span', { class: 'ghost-bar', style: `width:${w}` }), h('span', { class: 'ghost-dur' })))),
         h('span', { class: 'ghost-label micro' }, app.content.release.coverLabel || 'Prochainement')),
       h('div', { class: 'actions-end' }, button(c.notifyCta, { variant: 'secondary', icon: '→', onClick: () => go('rejoindre') })));
+    // les plateformes restent visibles avant la sortie
+    const plats = platformsBlock(c);
+    if (plats) card.append(plats);
     return card;
   }
 
@@ -421,18 +424,23 @@ function viewEcouter() {
         h('span', { class: 'umdc-track-tag' }),
         h('span', { class: 'umdc-track-dur' }, t.duration || '--:--')))))));
 
-  if (app.content.platforms.length) {
-    card.append(h('div', { class: 'card-head', style: 'gap:8px' },
-      h('span', { class: 'micro accent' }, c.platformsTitle),
-      h('ul', { class: 'nets small' }, app.content.platforms.map((p) => h('li', null,
-        h('a', { class: 'net', href: p.url, target: '_blank', rel: 'noopener noreferrer' },
-          h('span', { class: 'net-name' }, p.name),
-          h('span', null),
-          h('span', { class: 'arr', 'aria-hidden': 'true' }, '↗'),
-          h('span', { class: 'umdc-sr' }, ", s'ouvre dans un nouvel onglet")))))));
-  }
+  const plats = platformsBlock(c);
+  if (plats) card.append(plats);
   queueMicrotask(renderPlayer);
   return card;
+}
+
+/* Les plateformes (Spotify, Apple Music…) : affichées dans « Écouter », avant comme après la sortie. */
+function platformsBlock(c) {
+  if (!app.content.platforms.length) return null;
+  return h('div', { class: 'card-head', style: 'gap:8px' },
+    h('span', { class: 'micro accent' }, c.platformsTitle),
+    h('ul', { class: 'nets small' }, app.content.platforms.map((p) => h('li', null,
+      h('a', { class: 'net', href: p.url, target: '_blank', rel: 'noopener noreferrer' },
+        h('span', { class: 'net-name' }, p.name),
+        h('span', null),
+        h('span', { class: 'arr', 'aria-hidden': 'true' }, '↗'),
+        h('span', { class: 'umdc-sr' }, ", s'ouvre dans un nouvel onglet"))))));
 }
 
 /* ---------------------------------------------------------------- lecteur */

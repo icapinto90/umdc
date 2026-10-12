@@ -297,10 +297,10 @@ function viewSortie() {
         dateField,
         h('div'),
         f('Mention sur la tracklist floue, avant la sortie', 'release', 'coverLabel'))),
-    section('Plateformes', 'Affichées dans « Écouter » après la sortie. Une plateforme sans URL n’apparaît pas.',
+    section('Plateformes', 'Affichées dans « Écouter », avant comme après la sortie : avant, mets le lien de ton profil artiste, puis celui de l’album. Une plateforme sans URL n’apparaît pas.',
       ...editableList('platforms', (item) => [
         itemField('Nom', item, 'name'),
-        itemField("URL de l'album", item, 'url', { type: 'url', placeholder: 'https://' }),
+        itemField('URL (profil artiste ou album)', item, 'url', { type: 'url', placeholder: 'https://' }),
       ], () => ({ id: '', name: '', url: '' }), { addLabel: 'Ajouter une plateforme' })),
     section('Tracklist', 'Choisis le son de chaque titre (envoie les fichiers dans l’onglet Sons). Le site ne joue qu’un extrait, pour donner envie d’aller sur les plateformes : règle où il commence (0:00 si vide) et combien de secondes il dure (30 si vide, de 5 à 120). Décoche « en ligne » pour cacher un titre.',
       ...editableList('tracks', (item) => [
