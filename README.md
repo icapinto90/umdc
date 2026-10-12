@@ -105,5 +105,8 @@ du morceau en fondu, s'efface en fondu avant la fin puis reprend à 5 s, en bouc
 `FADE_OUT` dans `src/site/sound.js`). Le bouton « Son » le coupe.
 L'extrait, choisi dans le design, est public, même avant la sortie.
 
-Polices : Condor Medium (UMDC) et IBM Plex Mono (SIL OFL, licence dans
-`public/fonts/`).
+Police du site public : Condor Medium partout (licence commerciale à acquérir auprès de son créateur ; le fichier
+actuel vient de la version d'essai). Le back-office garde IBM Plex Mono (SIL OFL, licence dans `public/fonts/`).
+
+Un toucher sur le collier le montre en gros plan (un autre toucher, « Revenir » ou Échap pour revenir). Sur téléphone,
+le menu est une barre en bas de l'écran et la scène passe sous les barres du navigateur.

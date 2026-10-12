@@ -84,6 +84,12 @@ const app = {
     if (this.phase === 'panorama') startUnearth();
     else if (this.phase === 'ready' && this.section !== 'ecouter') go('ecouter');
   },
+  /* Un toucher sur le collier : gros plan ; un autre toucher (ou « Revenir ») ramène la caméra. */
+  focus: false,
+  onCollierClick() {
+    if (this.phase !== 'ready') return;
+    setFocus(!this.focus);
+  },
 };
 
 const sound = new Ambient();
@@ -137,10 +143,18 @@ function renderIntro() {
 /* ---------------------------------------------------------------- navigation */
 
 /* Le panneau se retire en fondu avant que le suivant n'arrive ; la caméra part tout de suite. */
+function setFocus(on) {
+  if (on && app.section !== 'accueil') go('accueil');
+  app.focus = on;
+  sound.blip(on ? 659 : 392);
+  renderChrome();
+}
+
 function go(s) {
   if (!SECTIONS.includes(s)) s = 'accueil';
-  const cur = app.section;
-  if (s === cur && !goTimer) return;
+  const cur = app.section, wasFocus = app.focus;
+  app.focus = false;
+  if (s === cur && !goTimer) { if (wasFocus) renderChrome(); return; }
   sound.blip(s === 'accueil' ? 392 : 523);
   app._camSec = s === 'confidentialite' ? 'rejoindre' : s;
   stage?.navigate();
@@ -175,6 +189,8 @@ function renderChrome() {
   root.classList.toggle('has-panel', sec !== 'accueil');
   root.classList.toggle('ui-on', uiOn);
   root.classList.toggle('hud-on', hudOn);
+  root.classList.toggle('is-focus', app.focus);
+  $('#focus-back').hidden = !app.focus;
   for (const b of document.querySelectorAll('.nav-item')) {
     const on = b.dataset.go === sec;
     b.classList.toggle('is-active', on);
@@ -498,8 +514,10 @@ function init() {
   $('#sound').addEventListener('click', () => showSound(sound.toggle()));
   $('#unearth').addEventListener('click', startUnearth);
   $('#skip').addEventListener('click', skipIntro);
+  $('#focus-exit').addEventListener('click', () => setFocus(false));
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && app.section !== 'accueil') go('accueil');
+    if (e.key === 'Escape' && app.focus) setFocus(false);
+    else if (e.key === 'Escape' && app.section !== 'accueil') go('accueil');
   });
 
   renderChrome();

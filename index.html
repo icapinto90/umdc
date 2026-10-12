@@ -10,7 +10,7 @@
   <meta property="og:description" content="UMDC, l'album de Noé Mémorable, arrive prochainement. Rejoins la liste pour l'entendre avant tout le monde.">
   <meta property="og:image" content="/assets/logo-umdc.png">
   <link rel="icon" href="/assets/mark-umdc.png">
-  <link rel="preload" href="/fonts/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/Condor-Medium.otf" as="font" type="font/otf" crossorigin>
   <link rel="preload" href="/models/collier.bin" as="fetch" crossorigin>
   <script type="module" src="/src/site/main.js"></script>
 </head>
@@ -54,6 +54,12 @@
         </button>
       </div>
     </div>
+  </div>
+
+  <div class="focus-back" id="focus-back" hidden>
+    <button type="button" class="umdc-btn umdc-btn-primary umdc-btn-m" id="focus-exit">
+      <span class="umdc-btn-icon" aria-hidden="true">←</span><span class="umdc-btn-label">Revenir</span>
+    </button>
   </div>
 
   <section id="umdc-panel" class="panel" hidden>

@@ -2,8 +2,8 @@
 // sous un ciel bleu à cumulus. Portage du design (Claude Design, « Site UMDC — écran 3D »).
 //
 // `app` fournit l'état lu à chaque image et reçoit les événements :
-//   app.intro, app.phase, app.mouse {x,y}, app.camSec(), app.isPlaying(),
-//   app.onProgress(p), app.onModelReady(failed), app.onCoverClick()
+//   app.intro, app.phase, app.mouse {x,y}, app.camSec(), app.isPlaying(), app.focus (gros plan sur le collier),
+//   app.onProgress(p), app.onModelReady(failed), app.onCoverClick(), app.onCollierClick()
 
 import * as THREE from 'three';
 
@@ -66,7 +66,8 @@ export class Stage {
     const fit = (hf, wf) => Math.max(1.3 / (tanH * hf), 1.3 / (tanH * aspect * wf));
     const p = { th: B.th, ph: B.ph, tx: B.x, ty: B.y, tz: B.z, cry: 0, crx: 0 };
     if (sec === 'accueil') {
-      p.fx = 0.5; p.fy = mobile ? 0.38 : 0.44; p.r = mobile ? fit(0.4, 0.78) : fit(0.54, 0.6);
+      /* sur téléphone : la cartouche un peu à gauche et un peu plus petite, pour que le collier entre dans le cadre à droite */
+      p.fx = mobile ? 0.36 : 0.5; p.fy = mobile ? 0.36 : 0.44; p.r = mobile ? fit(0.32, 0.6) : fit(0.54, 0.6);
     } else if (mobile) {
       p.fx = 0.5; p.fy = 0.2; p.r = fit(0.27, 0.62); p.crx = 0.05;
     } else {
@@ -78,6 +79,12 @@ export class Stage {
   }
   /* L'angle de caméra qui regarde droit vers le soleil (et sa colonne de lumière). */
   sunTh() { return (SKY.uSun - SKY.view - 0.5) * Math.PI * 2 + Math.PI; }
+  /* Gros plan sur le collier : la caméra s'approche et le regarde d'en haut, en biais ; on peut tourner autour. */
+  collierPose(W, H) {
+    const aspect = W / Math.max(1, H), tanH = 2 * Math.tan(this.fov() / 2 * Math.PI / 180), mobile = W < 761;
+    const r = Math.max(1.5 / (tanH * 0.62), 1.5 / (tanH * aspect * (mobile ? 0.92 : 0.6)));
+    return { th: 0.05, ph: 0.95, r, tx: 0, ty: 0.03, tz: 0.12, fx: 0.5, fy: mobile ? 0.42 : 0.47, cry: 0, crx: 0 };
+  }
   /* Début : très haut, dans la brume, déjà tourné vers le soleil. */
   introPose() { return { th: this.sunTh(), ph: 1.2, r: 13, tx: -0.7, ty: 0, tz: 0.1, fx: 0.5, fy: 0.5, cry: 0, crx: 0 }; }
   /* En attendant le clic : un long vol lent autour du collier et de la cartouche, au ras de l'eau.
@@ -758,7 +765,7 @@ export class Stage {
       if (!s.drag.on) {
         if (!s.hoverTick) {
           s.hoverTick = true;
-          requestAnimationFrame(() => { s.hoverTick = false; if (this._s === s) canvas.style.cursor = this.pickCover(s, e.clientX, e.clientY) ? 'pointer' : ''; });
+          requestAnimationFrame(() => { s.hoverTick = false; if (this._s === s) canvas.style.cursor = (this.pickCover(s, e.clientX, e.clientY) || (app.phase === 'ready' && this.pickCollier(s, e.clientX, e.clientY))) ? 'pointer' : ''; });
         }
         return;
       }
@@ -775,7 +782,10 @@ export class Stage {
       s.drag.on = false;
       s.drag.off = Math.atan2(Math.sin(s.drag.off), Math.cos(s.drag.off));
       try { canvas.releasePointerCapture(e.pointerId); } catch (_) { /* rien */ }
-      if (e.type === 'pointerup' && s.drag.moved < 8 && performance.now() - s.drag.downT < 700 && this.pickCover(s, e.clientX, e.clientY)) app.onCoverClick();
+      if (e.type !== 'pointerup' || s.drag.moved >= 8 || performance.now() - s.drag.downT >= 700) return;
+      /* un toucher : la cartouche, sinon le collier (gros plan), sinon on sort du gros plan */
+      if (this.pickCover(s, e.clientX, e.clientY)) app.onCoverClick();
+      else if (this.pickCollier(s, e.clientX, e.clientY) || app.focus) app.onCollierClick();
     };
     canvas.addEventListener('pointerdown', s.onDown);
     canvas.addEventListener('pointermove', s.onDrag);
@@ -845,6 +855,18 @@ export class Stage {
     s.scene.add(mesh);
     s.model = mesh;
     app.onProgress(35);
+  }
+
+  pickCollier(s, cx, cy) {
+    if (!s.model) return false;
+    const rect = s.canvas.getBoundingClientRect();
+    if (!rect.width) return false;
+    s.ray.setFromCamera({ x: ((cx - rect.left) / rect.width) * 2 - 1, y: -(((cy - rect.top) / rect.height) * 2 - 1) }, s.camera);
+    const hit = s.ray.intersectObject(s.model, false)[0];
+    if (!hit) return false;
+    /* seulement le collier et son creux, pas le sable du scan tout autour */
+    const p = s.model.worldToLocal(hit.point.clone());
+    return Math.hypot(p.x / 0.46, (p.z - 0.1) / 0.8) < 0.75;
   }
 
   pickCover(s, cx, cy) {
@@ -969,6 +991,7 @@ export class Stage {
     let P, w;
     if (loading) { P = this.introPose(); w = 1.2; }
     else if (pano) { P = this.panoramaPose(s.t - (s.panoAt == null ? s.t : s.panoAt), s.W, s.H); w = 1.0; }
+    else if (app.focus && !lifting) { P = this.collierPose(s.W, s.H); w = 1.6; }
     else { P = this.poseFor(sec, s.W, s.H); w = 1.6; }
     const tw = s.tw, twp = tw ? (s.t - tw.t0) / tw.dur : 1;
     if (rm) camKeys.forEach((k) => { c[k] = P[k]; c[k + 'V'] = 0; });
