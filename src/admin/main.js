@@ -169,10 +169,11 @@ function renderSavebar() {
   if (!bar) return;
   const d = dirty();
   bar.hidden = state.tab === 'emails' && !d;
-  bar.replaceChildren(
+  bar.replaceChildren(...[
     h('span', { class: 'msg' + (d ? ' dirty' : '') }, d ? 'Modifications non enregistrées' : state.updatedAt ? 'Enregistré · ' + fmtDate(state.updatedAt) : 'Contenu par défaut du design'),
     d ? btn('Annuler', { variant: 'ghost', onClick: () => { state.content = JSON.parse(state.saved); render(); } }) : null,
-    btn(state.saving ? 'Enregistrement…' : 'Enregistrer', { variant: 'primary', onClick: save, disabled: !d || state.saving }));
+    btn(state.saving ? 'Enregistrement…' : 'Enregistrer', { variant: 'primary', onClick: save, disabled: !d || state.saving }),
+  ].filter(Boolean));
 }
 
 /* ---------- Textes ---------- */
@@ -243,6 +244,7 @@ function editableList(key, columns, makeItem, { addLabel, extra } = {}) {
     extra || null)];
 }
 
+const cls = (el, c) => { el.classList.add(c); return el; };
 const itemField = (label, item, key, opts) => field(label, item[key], (v) => { item[key] = v; touch(); }, opts);
 
 function viewReseaux() {
@@ -295,15 +297,17 @@ function viewSortie() {
         itemField('Nom', item, 'name'),
         itemField("URL de l'album", item, 'url', { type: 'url', placeholder: 'https://' }),
       ], () => ({ id: '', name: '', url: '' }), { addLabel: 'Ajouter une plateforme' })),
-    section('Tracklist', 'Choisis le son de chaque titre (envoie les fichiers dans l’onglet Sons). Le site ne joue qu’un extrait de 30 s, à partir du « début de l’extrait » (0:00 si vide), pour donner envie d’aller sur les plateformes. Décoche « en ligne » pour cacher un titre.',
+    section('Tracklist', 'Choisis le son de chaque titre (envoie les fichiers dans l’onglet Sons). Le site ne joue qu’un extrait, pour donner envie d’aller sur les plateformes : règle où il commence (0:00 si vide) et combien de secondes il dure (30 si vide, de 5 à 120). Décoche « en ligne » pour cacher un titre.',
       ...editableList('tracks', (item) => [
         itemField('Titre', item, 'title'),
         itemField('Feat.', item, 'feat'),
         itemField('Durée', item, 'duration', { placeholder: '03:42' }),
-        itemField("Début de l'extrait", item, 'previewStart', { placeholder: '01:12' }),
         audioSelect(item),
-        checkbox('En ligne', item.enabled, (v) => { item.enabled = v; touch(); }),
-      ], () => ({ id: '', title: '', feat: '', duration: '', previewStart: '', audio: '', enabled: true }), { addLabel: 'Ajouter un titre' })),
+        // deuxième rangée : l'extrait et la mise en ligne
+        cls(itemField("Début de l'extrait", item, 'previewStart', { placeholder: '00:00' }), 'r2-start'),
+        cls(itemField('Durée (secondes)', item, 'previewLength', { placeholder: '30', type: 'number' }), 'r2-len'),
+        cls(checkbox('En ligne', item.enabled, (v) => { item.enabled = v; touch(); }), 'r2-online'),
+      ], () => ({ id: '', title: '', feat: '', duration: '', previewStart: '', previewLength: '', audio: '', enabled: true }), { addLabel: 'Ajouter un titre' })),
   ];
 }
 

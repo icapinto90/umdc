@@ -450,7 +450,9 @@ function renderPlayer() {
   const ct = app.current >= 0 ? app.tracks[app.current] : null;
   const status = $('#pl-status');
   const c = app.content.ecouter;
-  if (status) status.textContent = !ct ? 'Choisis un titre' : (app.playing ? 'En lecture' : 'En pause') + ' · ' + c.previewLabel;
+  // « Extrait · 45 s » (une ancienne mention « Extrait · 30 s » enregistrée dans l'admin perd son nombre fixe)
+  const label = (c.previewLabel || 'Extrait').replace(/\s*·\s*\d+\s*s$/i, '');
+  if (status) status.textContent = !ct ? 'Choisis un titre' : (app.playing ? 'En lecture' : 'En pause') + ' · ' + label + (ct.preview ? ' · ' + ct.preview + ' s' : '');
   const end = $('#pl-end');
   if (end) {
     end.hidden = !(ct && app.previewEnded);

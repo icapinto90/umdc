@@ -43,8 +43,8 @@ Sers le site en HTTPS : le cookie de session admin est `Secure` en production.
 
 Sauvegarde : il suffit de copier le dossier `DATA_DIR` (`umdc.sqlite` + `audio/`).
 
-Les titres ne sont jamais servis en entier : le serveur fabrique avec ffmpeg un extrait de 30 s par titre (début réglable
-dans l'admin, fondus d'entrée et de sortie), rangé dans `DATA_DIR/audio/extraits/`. À la fin d'un extrait, le lecteur
+Les titres ne sont jamais servis en entier : le serveur fabrique avec ffmpeg un extrait par titre (début et durée réglables
+dans l'admin, 30 s par défaut, fondus d'entrée et de sortie), rangé dans `DATA_DIR/audio/extraits/`. À la fin d'un extrait, le lecteur
 invite à écouter la suite sur les plateformes renseignées.
 
 ## Le back-office

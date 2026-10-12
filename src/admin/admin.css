@@ -38,7 +38,12 @@ body { margin: 0; background: var(--surface); color: var(--ink); font-family: va
 .row { display: grid; gap: 12px; align-items: end; padding: 12px 0; border-bottom: 1px solid var(--line); }
 .row.socials { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 2fr) auto; }
 .row.platforms { grid-template-columns: minmax(0, 1fr) minmax(0, 3fr) auto; }
-.row.tracks { grid-template-columns: 32px minmax(0, 2fr) minmax(0, 1fr) 84px minmax(0, 1.6fr) auto; }
+/* un titre sur deux rangées : titre, feat., durée, son ; puis l'extrait (début, durée), « en ligne » et les outils */
+.row.tracks { grid-template-columns: 32px minmax(0, 2fr) minmax(0, 1fr) 96px minmax(0, 1.6fr); row-gap: 10px; }
+.row.tracks .r2-start { grid-column: 2; }
+.row.tracks .r2-len { grid-column: 3; }
+.row.tracks .r2-online { grid-column: 4; white-space: nowrap; }
+.row.tracks .row-tools { grid-column: 5; justify-self: end; padding-bottom: 8px; }
 .row .num { align-self: center; font-weight: 500; font-size: 13px; color: var(--ink-muted); font-variant-numeric: tabular-nums; padding-top: 22px; }
 .row-tools { display: flex; gap: 4px; align-items: center; }
 .icon-btn { display: inline-grid; place-items: center; width: 36px; height: 44px; padding: 0; border: 0; background: none; color: var(--ink); cursor: pointer; font: inherit; font-size: 15px; }
@@ -91,6 +96,7 @@ td.act { width: 1%; }
   .adm-section { padding: 24px 16px; }
   .grid-2 { grid-template-columns: minmax(0, 1fr); }
   .row.socials, .row.platforms, .row.tracks { grid-template-columns: minmax(0, 1fr); }
+  .row.tracks .r2-start, .row.tracks .r2-len, .row.tracks .r2-online, .row.tracks .row-tools { grid-column: auto; justify-self: start; }
   .row .num { padding-top: 0; }
   .files li { grid-template-columns: minmax(0, 1fr) auto; }
   .files audio { grid-column: 1 / -1; width: 100%; }

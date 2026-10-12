@@ -104,7 +104,7 @@ app.post('/api/subscribe', limiter(10, 10 * 60 * 1000), (req, res) => {
   res.json({ ok: true });
 });
 
-// Les sons ne sont servis qu'après la sortie (ou à l'admin, pour vérifier), et seulement en extrait de 30 s :
+// Les sons ne sont servis qu'après la sortie (ou à l'admin, pour vérifier), et seulement en extrait :
 // le fichier entier ne quitte jamais le serveur (l'admin l'écoute en entier dans l'onglet Sons).
 app.get('/api/audio/:id', async (req, res) => {
   const { content } = db.getContent();
@@ -116,7 +116,7 @@ app.get('/api/audio/:id', async (req, res) => {
   const file = path.join(AUDIO_DIR, track.audio);
   if (!file.startsWith(AUDIO_DIR + path.sep) || !fs.existsSync(file)) return res.status(404).end();
   try {
-    const preview = await ensurePreview(AUDIO_DIR, track.audio, track.previewStart);
+    const preview = await ensurePreview(AUDIO_DIR, track.audio, track.previewStart, track.previewLength);
     res.set('Cache-Control', 'private, max-age=3600');
     res.sendFile(preview, { dotfiles: 'allow' });
   } catch (e) {

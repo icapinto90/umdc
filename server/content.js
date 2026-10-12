@@ -1,6 +1,13 @@
 // Contenu éditable du site : valeurs par défaut (reprises du design) et nettoyage
 // de ce que le back-office envoie. Tout ce qui n'est pas prévu ici est ignoré.
 
+/* La durée d'un extrait de la tracklist, en secondes : « 45 » → 45 (de 5 à 120) ; vide → 30. */
+export const PREVIEW_SECONDS = 30;
+export function parseLength(v) {
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0 ? Math.min(120, Math.max(5, Math.round(n))) : PREVIEW_SECONDS;
+}
+
 export const DEFAULT_CONTENT = {
   home: {
     artist: 'Noé Mémorable',
@@ -46,7 +53,7 @@ export const DEFAULT_CONTENT = {
     releasedTitle: 'La tracklist',
     releasedText: 'Choisis un titre pour en écouter un extrait.',
     platformsTitle: 'Aussi sur',
-    previewLabel: 'Extrait · 30 s',
+    previewLabel: 'Extrait',
     previewEnd: 'Écoute la suite sur',
     previewNext: 'Extrait suivant',
   },
@@ -76,7 +83,7 @@ export const DEFAULT_CONTENT = {
 const ITEM_SHAPES = {
   socials: { id: '', name: '', handle: '', url: '' },
   platforms: { id: '', name: '', url: '' },
-  tracks: { id: '', title: '', feat: '', duration: '', previewStart: '', audio: '', enabled: true },
+  tracks: { id: '', title: '', feat: '', duration: '', previewStart: '', previewLength: '', audio: '', enabled: true },
 };
 
 const URL_KEYS = new Set(['url']);
@@ -122,6 +129,7 @@ function cleanList(input, key, fallback) {
       o.audio = /^[a-z0-9][a-z0-9._-]*$/i.test(o.audio) ? o.audio : '';
       o.duration = /^\d{1,2}:\d{2}$/.test(o.duration) ? o.duration : '';
       o.previewStart = /^\d{1,2}:\d{2}$/.test(o.previewStart) ? o.previewStart : '';
+      o.previewLength = /^\d{1,3}$/.test(o.previewLength) ? String(parseLength(o.previewLength)) : '';
     }
     return o;
   });
@@ -172,6 +180,7 @@ export function publicContent(content, now = Date.now()) {
           title: tr.title,
           feat: tr.feat,
           duration: tr.duration,
+          preview: parseLength(tr.previewLength),
           src: tr.audio ? '/api/audio/' + encodeURIComponent(tr.id) : '',
         }))
       : [],
