@@ -181,7 +181,8 @@ export function publicContent(content, now = Date.now()) {
           feat: tr.feat,
           duration: tr.duration,
           preview: parseLength(tr.previewLength),
-          src: tr.audio ? '/api/audio/' + encodeURIComponent(tr.id) : '',
+          // l'adresse change avec le fichier, le début et la durée : le navigateur ne rejoue jamais un ancien extrait gardé en cache
+          src: tr.audio ? '/api/audio/' + encodeURIComponent(tr.id) + '?v=' + encodeURIComponent([tr.audio, tr.previewStart || '0', parseLength(tr.previewLength)].join('~')) : '',
         }))
       : [],
   };
