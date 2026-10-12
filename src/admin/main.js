@@ -217,7 +217,9 @@ function viewTextes() {
         f('Titre avant la sortie', 'ecouter', 'title'), f('Bouton avant la sortie', 'ecouter', 'notifyCta'),
         f('Texte avant la sortie', 'ecouter', 'text', { multiline: true, wide: true }),
         f('Titre après la sortie', 'ecouter', 'releasedTitle'), f('Titre des plateformes', 'ecouter', 'platformsTitle'),
-        f('Texte après la sortie', 'ecouter', 'releasedText', { wide: true }))),
+        f('Texte après la sortie', 'ecouter', 'releasedText', { wide: true }),
+        f('Mention du lecteur (extrait)', 'ecouter', 'previewLabel'), f('Fin d’extrait : invitation', 'ecouter', 'previewEnd'),
+        f('Fin d’extrait : bouton suivant', 'ecouter', 'previewNext'))),
   ];
 }
 
@@ -293,14 +295,15 @@ function viewSortie() {
         itemField('Nom', item, 'name'),
         itemField("URL de l'album", item, 'url', { type: 'url', placeholder: 'https://' }),
       ], () => ({ id: '', name: '', url: '' }), { addLabel: 'Ajouter une plateforme' })),
-    section('Tracklist', 'Choisis le son de chaque titre (envoie les fichiers dans l’onglet Sons). Décoche « en ligne » pour cacher un titre.',
+    section('Tracklist', 'Choisis le son de chaque titre (envoie les fichiers dans l’onglet Sons). Le site ne joue qu’un extrait de 30 s, à partir du « début de l’extrait » (0:00 si vide), pour donner envie d’aller sur les plateformes. Décoche « en ligne » pour cacher un titre.',
       ...editableList('tracks', (item) => [
         itemField('Titre', item, 'title'),
         itemField('Feat.', item, 'feat'),
         itemField('Durée', item, 'duration', { placeholder: '03:42' }),
+        itemField("Début de l'extrait", item, 'previewStart', { placeholder: '01:12' }),
         audioSelect(item),
         checkbox('En ligne', item.enabled, (v) => { item.enabled = v; touch(); }),
-      ], () => ({ id: '', title: '', feat: '', duration: '', audio: '', enabled: true }), { addLabel: 'Ajouter un titre' })),
+      ], () => ({ id: '', title: '', feat: '', duration: '', previewStart: '', audio: '', enabled: true }), { addLabel: 'Ajouter un titre' })),
   ];
 }
 
@@ -343,7 +346,7 @@ function viewSons() {
       h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Supprimer ' + fl.name, onClick: () => deleteFile(fl.name) }, '×'))))
     : h('p', { class: 'muted', style: 'margin:0;font-size:13px' }, 'Aucun son pour l’instant.');
 
-  return section('Sons', 'Les fichiers restent privés jusqu’à la sortie. Mets des extraits si tu ne veux pas diffuser les titres entiers. Associe-les ensuite aux titres dans « Sortie & tracklist ».', drop, list);
+  return section('Sons', 'Les fichiers restent privés jusqu’à la sortie. Le site n’en joue que des extraits de 30 s : tu peux envoyer les titres entiers. Associe-les ensuite aux titres dans « Sortie & tracklist ».', drop, list);
 }
 
 const previewUrl = (name) => '/api/admin/audio/' + encodeURIComponent(name);

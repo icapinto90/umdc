@@ -44,8 +44,11 @@ export const DEFAULT_CONTENT = {
     text: "Les sons d’UMDC arrivent ici prochainement. Rejoins la liste pour être prévenu en premier.",
     notifyCta: 'Être prévenu',
     releasedTitle: 'La tracklist',
-    releasedText: 'Choisis un titre pour l’écouter.',
+    releasedText: 'Choisis un titre pour en écouter un extrait.',
     platformsTitle: 'Aussi sur',
+    previewLabel: 'Extrait · 30 s',
+    previewEnd: 'Écoute la suite sur',
+    previewNext: 'Extrait suivant',
   },
   release: {
     mode: 'auto', // auto | on | off
@@ -73,7 +76,7 @@ export const DEFAULT_CONTENT = {
 const ITEM_SHAPES = {
   socials: { id: '', name: '', handle: '', url: '' },
   platforms: { id: '', name: '', url: '' },
-  tracks: { id: '', title: '', feat: '', duration: '', audio: '', enabled: true },
+  tracks: { id: '', title: '', feat: '', duration: '', previewStart: '', audio: '', enabled: true },
 };
 
 const URL_KEYS = new Set(['url']);
@@ -118,6 +121,7 @@ function cleanList(input, key, fallback) {
     if (key === 'tracks') {
       o.audio = /^[a-z0-9][a-z0-9._-]*$/i.test(o.audio) ? o.audio : '';
       o.duration = /^\d{1,2}:\d{2}$/.test(o.duration) ? o.duration : '';
+      o.previewStart = /^\d{1,2}:\d{2}$/.test(o.previewStart) ? o.previewStart : '';
     }
     return o;
   });

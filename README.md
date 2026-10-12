@@ -23,6 +23,7 @@ npm run dev
 Sur un hébergement Node (VPS, Render, Railway, Fly…) :
 
 ```bash
+sudo apt install -y ffmpeg   # pour les extraits de 30 s de la tracklist
 npm ci
 npm run build
 cp .env.example .env    # puis mets un vrai ADMIN_PASSWORD dedans
@@ -41,6 +42,10 @@ Variables, dans un fichier `.env` à la racine (lu par `npm start`) ou dans l'en
 Sers le site en HTTPS : le cookie de session admin est `Secure` en production.
 
 Sauvegarde : il suffit de copier le dossier `DATA_DIR` (`umdc.sqlite` + `audio/`).
+
+Les titres ne sont jamais servis en entier : le serveur fabrique avec ffmpeg un extrait de 30 s par titre (début réglable
+dans l'admin, fondus d'entrée et de sortie), rangé dans `DATA_DIR/audio/extraits/`. À la fin d'un extrait, le lecteur
+invite à écouter la suite sur les plateformes renseignées.
 
 ## Le back-office
 

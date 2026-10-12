@@ -368,6 +368,14 @@ function viewEcouter() {
         h('div', { class: 'progress', 'aria-hidden': 'true' }, h('span', { id: 'pl-bar' }))),
       h('span', { class: 'player-time', id: 'pl-time' }, '00:00'),
       button('Lecture', { variant: 'secondary', size: 's', id: 'pl-toggle', onClick: togglePlay })));
+    /* à la fin d'un extrait : l'invitation à écouter la suite sur les plateformes */
+    const plats = app.content.platforms;
+    card.append(h('div', { class: 'player-end', id: 'pl-end', hidden: true },
+      plats.length ? h('span', { class: 'micro accent' }, c.previewEnd) : null,
+      plats.length ? h('div', { class: 'player-end-links' }, plats.map((p) => h('a', {
+        class: 'umdc-btn umdc-btn-primary umdc-btn-s', href: p.url, target: '_blank', rel: 'noopener noreferrer',
+      }, h('span', { class: 'umdc-btn-label' }, p.name), h('span', { class: 'umdc-btn-icon', 'aria-hidden': 'true' }, '↗')))) : null,
+      button(c.previewNext, { variant: 'secondary', size: 's', id: 'pl-next', icon: '→', onClick: nextTrack })));
   }
 
   card.append(h('div', { class: 'umdc-tracklist' },
@@ -400,6 +408,7 @@ function selectTrack(i) {
   if (i === app.current) { togglePlay(); return; }
   sound.blip(659);
   app.current = i;
+  app.previewEnded = false;
   audio.src = t.src;
   audio.play().catch(() => { app.playing = false; renderPlayer(); });
   app.playing = true;
@@ -412,6 +421,7 @@ function togglePlay() {
     if (first >= 0) selectTrack(first);
     return;
   }
+  app.previewEnded = false;
   if (audio.paused) audio.play().catch(() => {});
   else audio.pause();
 }
@@ -424,7 +434,8 @@ function nextTrack() {
 
 audio.addEventListener('play', () => { app.playing = true; sound.duck(true); renderPlayer(); });
 audio.addEventListener('pause', () => { app.playing = false; sound.duck(false); renderPlayer(); });
-audio.addEventListener('ended', nextTrack);
+// Fin d'un extrait : on s'arrête et on invite à écouter la suite sur les plateformes (pas d'enchaînement automatique).
+audio.addEventListener('ended', () => { app.playing = false; app.previewEnded = true; renderPlayer(); });
 audio.addEventListener('timeupdate', renderTime);
 audio.addEventListener('error', () => { if (audio.src) { app.playing = false; renderPlayer(); } });
 
@@ -438,7 +449,14 @@ function renderTime() {
 function renderPlayer() {
   const ct = app.current >= 0 ? app.tracks[app.current] : null;
   const status = $('#pl-status');
-  if (status) status.textContent = !ct ? 'Choisis un titre' : app.playing ? 'En lecture' : 'En pause';
+  const c = app.content.ecouter;
+  if (status) status.textContent = !ct ? 'Choisis un titre' : (app.playing ? 'En lecture' : 'En pause') + ' · ' + c.previewLabel;
+  const end = $('#pl-end');
+  if (end) {
+    end.hidden = !(ct && app.previewEnded);
+    const next = $('#pl-next');
+    if (next) next.hidden = !app.tracks.slice(app.current + 1).some((t) => t.src);
+  }
   const line = $('#pl-line');
   if (line) line.textContent = ct ? pad2(app.current + 1) + '  ' + ct.title + (ct.feat ? ' feat. ' + ct.feat : '') : '—';
   const btn = $('#pl-toggle .umdc-btn-label');

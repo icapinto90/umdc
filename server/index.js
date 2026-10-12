@@ -11,6 +11,7 @@ import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { openDb } from './db.js';
 import { sanitizeContent, publicContent } from './content.js';
+import { ensurePreview, warmPreviews } from './preview.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DATA_DIR = path.resolve(ROOT, process.env.DATA_DIR || 'data');
@@ -103,8 +104,9 @@ app.post('/api/subscribe', limiter(10, 10 * 60 * 1000), (req, res) => {
   res.json({ ok: true });
 });
 
-// Les sons ne sont servis qu'après la sortie (ou à l'admin, pour vérifier).
-app.get('/api/audio/:id', (req, res) => {
+// Les sons ne sont servis qu'après la sortie (ou à l'admin, pour vérifier), et seulement en extrait de 30 s :
+// le fichier entier ne quitte jamais le serveur (l'admin l'écoute en entier dans l'onglet Sons).
+app.get('/api/audio/:id', async (req, res) => {
   const { content } = db.getContent();
   const pub = publicContent(content);
   const admin = isAdmin(req);
@@ -113,8 +115,14 @@ app.get('/api/audio/:id', (req, res) => {
   if (!track || !track.audio) return res.status(404).end();
   const file = path.join(AUDIO_DIR, track.audio);
   if (!file.startsWith(AUDIO_DIR + path.sep) || !fs.existsSync(file)) return res.status(404).end();
-  res.set('Cache-Control', 'private, max-age=3600');
-  res.sendFile(file);
+  try {
+    const preview = await ensurePreview(AUDIO_DIR, track.audio, track.previewStart);
+    res.set('Cache-Control', 'private, max-age=3600');
+    res.sendFile(preview, { dotfiles: 'allow' });
+  } catch (e) {
+    console.error('[umdc] extrait impossible (ffmpeg installé ?) :', e.message);
+    res.status(503).end();
+  }
 });
 
 /* ------------------------------------------------------------ back-office */
@@ -144,6 +152,7 @@ app.put('/api/admin/content', requireAdmin, (req, res) => {
   const current = db.getContent().content;
   const content = sanitizeContent(req.body?.content, current);
   const updatedAt = db.saveContent(content);
+  warmPreviews(AUDIO_DIR, content.tracks);
   res.json({ content, updatedAt, released: publicContent(content).release.released });
 });
 
@@ -249,6 +258,8 @@ app.use((err, req, res, next) => {
   if (res.headersSent) return next(err);
   res.status(err.status || 500).json({ error: err.type === 'entity.too.large' ? 'Requête trop volumineuse.' : 'Erreur serveur.' });
 });
+
+warmPreviews(AUDIO_DIR, db.getContent().content.tracks);
 
 app.listen(PORT, () => {
   console.log(`[umdc] API prête sur http://localhost:${PORT}` + (fs.existsSync(DIST_DIR) ? ' (site construit servi aussi)' : ''));
