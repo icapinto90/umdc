@@ -306,6 +306,7 @@ function viewRejoindre() {
 
 /* Le choix du pays : drapeau, nom en français, indicatif ; les plus proches en tête, puis tous les pays par ordre alphabétique. */
 const TOP_COUNTRIES = ['CH', 'FR', 'BE', 'LU', 'DE', 'IT', 'ES', 'PT', 'GB', 'CA', 'US'];
+const EXCLUDED_COUNTRIES = ['EH', 'IL'];
 let countryList = null;
 function flag(code) {
   return String.fromCodePoint(...[...code].map((ch) => 0x1f1e6 + ch.charCodeAt(0) - 65));
@@ -314,8 +315,8 @@ function countryOptions() {
   if (countryList) return countryList;
   let names;
   try { names = new Intl.DisplayNames(['fr'], { type: 'region' }); } catch { names = { of: (c) => c }; }
-  const label = (c) => `${flag(c)} ${names.of(c) || c} (+${getCountryCallingCode(c)})`;
-  const all = getCountries().filter((c) => !TOP_COUNTRIES.includes(c))
+  const label = (c) => ${flag(c)} ${names.of(c) || c} (+${getCountryCallingCode(c)});
+  const all = getCountries().filter((c) => !TOP_COUNTRIES.includes(c) && !EXCLUDED_COUNTRIES.includes(c))
     .map((c) => [c, label(c), names.of(c) || c]).sort((a, b) => a[2].localeCompare(b[2], 'fr'));
   countryList = [...TOP_COUNTRIES.map((c) => [c, label(c)]), [null, ''], ...all.map(([c, l]) => [c, l])];
   return countryList;
