@@ -315,7 +315,7 @@ function countryOptions() {
   if (countryList) return countryList;
   let names;
   try { names = new Intl.DisplayNames(['fr'], { type: 'region' }); } catch { names = { of: (c) => c }; }
-  const label = (c) => ${flag(c)} ${names.of(c) || c} (+${getCountryCallingCode(c)});
+  const label = (c) => `${flag(c)} ${names.of(c) || c} (+${getCountryCallingCode(c)})`;
   const all = getCountries().filter((c) => !TOP_COUNTRIES.includes(c) && !EXCLUDED_COUNTRIES.includes(c))
     .map((c) => [c, label(c), names.of(c) || c]).sort((a, b) => a[2].localeCompare(b[2], 'fr'));
   countryList = [...TOP_COUNTRIES.map((c) => [c, label(c)]), [null, ''], ...all.map(([c, l]) => [c, l])];
